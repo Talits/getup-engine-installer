@@ -1,0 +1,52 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: certificate-checker
+  labels:
+    app: certcheck
+spec:
+  schedule: "00 14 * * 1"
+  jobTemplate:
+    metadata:
+      labels:
+        app: certificate-checker
+    spec:
+      template:
+        spec:
+          containers:
+          - name: openshift-ansible
+            image: getupcloud/certificate-checker:latest
+            imagePullPolicy: Always
+            restartPolicy: Never
+            env:
+            - name: ANSIBLE_CONFIG
+              value: /etc/ansible/ansible.cfg
+            - name: ANSIBLE_REMOTE_USER
+              value: "centos"
+            - name: ANSIBLE_HOST_KEY_CHECKING
+              value: "False"
+            - name: ANSIBLE_CACHE_PLUGIN_CONNECTION
+              value: /opt/app-root/src/facts/
+            - name: PLAYBOOK_FILE
+              value: playbooks/openshift-checks/certificate_expiry/easy-mode-upload.yaml
+            - name: INVENTORY_FILE
+              value: /opt/app-root/src/ansible/hosts
+            - name: CERT_EXPIRY_WARN_DAYS
+              value: "45"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            volumeMounts:
+            - name: dotssh
+              mountPath: /opt/app-root/src/.ssh
+            - name: hosts
+              mountPath: /opt/app-root/src/ansible
+          volumes:
+          - name: dotssh
+            secret:
+              secretName: certificate-checker-dotssh
+          - name: hosts
+            secret:
+              secretName: certificate-checker-hosts

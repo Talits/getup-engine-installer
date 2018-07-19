@@ -8,3 +8,4 @@ plan.*
 state
 scripts/origin
 .suffix
+.*\.yml~.*
