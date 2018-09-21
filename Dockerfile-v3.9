@@ -4,13 +4,11 @@ USER root
 
 ENV PACKER_VERSION=1.2.5 \
     TERRAFORM_VERSION=0.11.8 \
-    TERRAHELP_VERSION=0.6.3 \
     TARGET_OPENSHIFT_RELEASE=v3.9 \
     TARGET_OPENSHIFT_VERSION=3.9.0 \
     PATH=/getup-engine/bin/:$PATH \
     PACKER_BIN=/getup-engine/bin/packer \
     TERRAFORM_BIN=/getup-engine/bin/terraform \
-    TERRAHELP_BIN=/getup-engine/bin/terrahelp \
     TF_DATA_DIR=/state/.terraform \
     ANSIBLE_BIN=/usr/bin/ansible \
     ANSIBLE_PLAYBOOK_BIN=/usr/bin/ansible-playbook
@@ -32,8 +30,6 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
     curl -O https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
     unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip -d /getup-engine/bin/ && \
     rm -f terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
-    \
-    curl -o ${TERRAHELP_BIN} https://github.com/opencredo/terrahelp/releases/download/v${TERRAHELP_VERSION}/terrahelp-linux-amd64 && \
     \
     echo '#1000 ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers.d/allow_local_action && \
     ln -s /state/azure ~/.azure && \
