@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eu
+
+trap "echo WARNING: state not sync from backend" ERR
+
+target=$STATE_DIR/loaded-$(date +%s)
+echo Loading state from $STATE_BACKEND to $target
+
+if [ $PROVIDER == aws -a -n "${STATE_BACKEND}" ]; then
+    source setup-state-backend
+    aws_state_backend s3 sync $STATE_BACKEND/state/${CLUSTER_ID}/ $target
+fi

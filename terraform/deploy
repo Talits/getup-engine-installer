@@ -4,7 +4,6 @@ export NEWRELIC_LICENSE_KEY=${NEWRELIC_LICENSE_KEY}
 export REGISTRY_PREFIX=${REGISTRY_PREFIX:+$REGISTRY_PREFIX-}
 export TERRAFORM_BIN=${TERRAFORM_BIN:-terraform}
 export STATE_DIR=${TERRAFORM_STATE_DIR:-/state}
-export TERRAFORM_STATE_FILE=""
 export ROOT_DIR="$(dirname $0)"
 
 for envFile in $STATE_DIR/images/images.env $STATE_DIR/getupengine.env; do
@@ -79,7 +78,7 @@ for opt; do
     shift
 done
 
-source setup-state-backend
+source setup-state-backend && setup_state_backend
 
 if [ $scale_infra -gt 0 ]; then
     scale_to=$((scale_infra + INFRA_COUNT))
