@@ -94,6 +94,7 @@ getupcloud_observer_template_name: "observer"
 getupcloud_observer_message_frequency: 50
 
 getupcloud_pager_duty_service_key: ""
+getupcloud_pager_duty_check_config: ""
 getupcloud_slack_token: ""
 getupcloud_slack_operations_webhook: ""
 getupcloud_slack_operations_channel: "#operations"

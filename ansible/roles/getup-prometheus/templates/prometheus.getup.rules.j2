@@ -648,8 +648,8 @@ groups:
       cluster: {{ cluster_name }}
     annotations:
 {% raw %}
-    description: PVC {{$labels.persistentvolumeclaim}} in {{$labels.namespace}} will be full in 7 days - {{ cluster_name }}
-    summary: PVCDiskUsage
+      description: PVC {{$labels.persistentvolumeclaim}} in {{$labels.namespace}} will be full in 7 days - {{ cluster_name }}
+      summary: PVCDiskUsage
 {% endraw %}
   - alert: FailedBackup
     expr: heptio_eventrouter_warnings_current{involved_object_kind=~".*Backup"} > 1
