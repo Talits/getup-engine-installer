@@ -17,6 +17,8 @@
   tasks:
     - include_role:
         name: getup-prometheus
+    - include_role:
+        name: getup-alertmanager-check-config
 
 - name: EventRouter
   hosts: oo_first_master
