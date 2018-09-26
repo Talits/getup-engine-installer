@@ -2,7 +2,7 @@
 
 set -e
 
-version=v3.10
+version=v3.9
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 cluster-name [version=$version] [docker-run-options...]"
@@ -71,6 +71,29 @@ set -a
 source $state_dir/getupengine.env
 set +a
 
+state_backend_vars=(
+    STATE_BACKEND_AWS_ACCESS_KEY_ID
+    STATE_BACKEND_AWS_SECRET_ACCESS_KEY
+    STATE_BACKEND_AWS_DEFAULT_REGION
+)
+
+for var in ${state_backend_vars[*]}; do
+    if ! [ -v $var ]; then
+        read -sp "$var: " $var
+        echo
+    fi
+done
+
+if [ -n "$STATE_BACKEND_AWS_ACCESS_KEY_ID" -a "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -ne 20 ]; then
+    echo Invalid STATE_BACKEND_AWS_ACCESS_KEY_ID length: ${#STATE_BACKEND_AWS_ACCESS_KEY_ID}
+    exit 1
+fi
+
+if [ -n "$STATE_BACKEND_AWS_SECRET_ACCESS_KEY" -a "${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}" -ne 40 ]; then
+    echo Invalid STATE_BACKEND_AWS_SECRET_ACCESS_KEY length: ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}
+    exit 1
+fi
+
 echo "---> Starting container ${container_name} from image $image"
 trap "$PWD/bin/close-state ${state_dir}" EXIT
 
@@ -78,6 +101,9 @@ sudo docker run -it --rm $@ \
     -v ${state_dir}/:/state \
     --env-file ${state_dir}/getupengine.env \
     -e "STATE_KEY=${STATE_KEY}" \
+    -e "STATE_BACKEND_AWS_ACCESS_KEY_ID=$STATE_BACKEND_AWS_ACCESS_KEY_ID" \
+    -e "STATE_BACKEND_AWS_SECRET_ACCESS_KEY=$STATE_BACKEND_AWS_SECRET_ACCESS_KEY" \
+    -e "STATE_BACKEND_AWS_DEFAULT_REGION=$STATE_BACKEND_AWS_DEFAULT_REGION" \
     --name ${container_name} \
     ${CLUSTER_ZONE:+--dns-search $CLUSTER_ZONE} \
     $(for dom in $search; do [ $CLUSTER_ZONE != $dom ] && echo --dns-search $dom; done) \

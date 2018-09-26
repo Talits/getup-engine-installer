@@ -1,45 +1,55 @@
 #!/bin/bash
 
 if [ "${STATE_BACKEND%%://*}" == s3 ]; then
-    function __do_setup_state_backend()
+    function aws_state_backend()
+    {
+        AWS_ACCESS_KEY_ID=${STATE_BACKEND_AWS_ACCESS_KEY_ID} \
+        AWS_SECRET_ACCESS_KEY=${STATE_BACKEND_AWS_SECRET_ACCESS_KEY} \
+        AWS_DEFAULT_REGION=${STATE_BACKEND_AWS_DEFAULT_REGION} \
+        aws "$@"
+    }
+
+    function setup_state_backend()
     {
         local BUCKET_NAME=${STATE_BACKEND#s3://}
         local CREATE_BUCKET_CONFIG=""
 
-        if [ ${AWS_DEFAULT_REGION} != "us-east-1" ]; then
-            CREATE_BUCKET_CONFIG="LocationConstraint=${AWS_DEFAULT_REGION}"
+        if [ ${STATE_BACKEND_AWS_DEFAULT_REGION} != "us-east-1" ]; then
+            CREATE_BUCKET_CONFIG="LocationConstraint=${STATE_BACKEND_AWS_DEFAULT_REGION}"
         fi
 
-        AWS_S3_BUCKET_NAME=${BUCKET_NAME} \
-            envsubst < /getup-engine/state-backend/$PROVIDER-backend.tf.in > $STATE_DIR/$PROVIDER-backend.tf
-
-        ln -fs $STATE_DIR/$PROVIDER-backend.tf /getup-engine/terraform/$PROVIDER/backend.tf
+        #AWS_S3_BUCKET_NAME=${BUCKET_NAME} \
+        #    envsubst < /getup-engine/state-backend/$PROVIDER-backend.tf.in > $STATE_DIR/$PROVIDER-backend.tf
+        #
+        #ln -fs $STATE_DIR/$PROVIDER-backend.tf /getup-engine/terraform/$PROVIDER/backend.tf
 
         {
-            aws s3api head-bucket --bucket ${BUCKET_NAME} && has_bucket=1 || has_bucket=0
-            aws s3api head-object --bucket ${BUCKET_NAME} --key terraform/state/terraform.tfstate && has_state_file=1 || has_state_file=0
+            aws_state_backend s3api head-bucket --bucket ${BUCKET_NAME} && has_bucket=1 || has_bucket=0
+            #__aws s3api head-object --bucket ${BUCKET_NAME} --key terraform/state/terraform.tfstate && has_state_file=1 || has_state_file=0
         } &>/dev/null
 
         if [ $has_bucket -eq 0 ]; then
             echo Creating state backend bucket $STATE_BACKEND
-            aws s3api create-bucket --bucket ${BUCKET_NAME} \
+            aws_state_backend s3api create-bucket --bucket ${BUCKET_NAME} \
                     --acl private ${CREATE_BUCKET_CONFIG:+--create-bucket-configuration $CREATE_BUCKET_CONFIG}
             sleep 5
-            aws s3api put-bucket-versioning --bucket ${BUCKET_NAME} --versioning-configuration Status=Enabled
+            aws_state_backend s3api put-bucket-versioning --bucket ${BUCKET_NAME} --versioning-configuration Status=Enabled
         fi
 
-        ( cd /getup-engine/terraform/$PROVIDER && ${TERRAFORM_BIN} init )
-
-        if [ $has_state_file -eq 0 ]; then
-            if [ -e $STATE_DIR/terraform.tfstate ]; then
-                echo Pushing existing state to backend
-                ( cd /getup-engine/terraform/$PROVIDER && terraform state push $STATE_DIR/terraform.tfstate )
-                mv -v $STATE_DIR/terraform.tfstate $STATE_DIR/terraform.tfstate.backup.$(date +%Y%m%d-%H%M%S-%Z)
-            fi
-        fi
+        #( cd /getup-engine/terraform/$PROVIDER && ${TERRAFORM_BIN} init )
+        #
+        #if [ $has_state_file -eq 0 ]; then
+        #    if [ -e $STATE_DIR/terraform.tfstate ]; then
+        #        echo Pushing existing state to backend
+        #        ( cd /getup-engine/terraform/$PROVIDER && terraform state push $STATE_DIR/terraform.tfstate )
+        #        mv -v $STATE_DIR/terraform.tfstate $STATE_DIR/terraform.tfstate.backup.$(date +%Y%m%d-%H%M%S-%Z)
+        #    fi
+        #fi
     }
-    __do_setup_state_backend
-    unset __do_setup_state_backend
-elif [ "${STATE_BACKEND%%://*}" == file -o -f "${STATE_BACKEND}" ]; then
-    export TERRAFORM_STATE_FILE="${STATE_BACKEND#file://}"
+else
+    echo
+    echo 'WARNING: Invalid state backend' $STATE_BACKEND
+    echo 'WARNING: Invalid state backend' $STATE_BACKEND
+    echo 'WARNING: Invalid state backend' $STATE_BACKEND
+    echo
 fi

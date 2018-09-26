@@ -53,7 +53,7 @@ CMD [ "/bin/bash" ]
 
 ADD images/ /getup-engine/images
 ADD terraform/ /getup-engine/terraform
-ADD state-backend/ /getup-engine/state-backend
+#ADD state-backend/ /getup-engine/state-backend
 
 RUN for provider in /getup-engine/terraform/*/ /getup-engine/images/azure/; do \
       echo "Terraform init [$provider]" && \
