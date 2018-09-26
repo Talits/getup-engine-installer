@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ -d /state -o -d /getup-engine ]; then
+    echo This script is supposed to be run outside the container
+    exit 1
+fi
+
+export PATH=${0%/*}/bin:$PATH
+export STATE_DIR=$PWD/state
+
+for dir in $STATE_DIR/*; do
+    dir=$(basename $dir)
+    CLUSTER_ID=.backup/${dir} STATE_DIR=$STATE_DIR/$dir save-state
+done
