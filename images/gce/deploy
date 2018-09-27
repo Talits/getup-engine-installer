@@ -1,0 +1,31 @@
+#!/bin/bash
+
+set -xe
+
+ROOT_DIR=${0%/*}
+packerOptions="$@"
+
+> ${OUTPUT_DIR}/images.env
+
+function build()
+{
+    if [ -x $ROOT_DIR/pre-deploy ]; then
+        source $ROOT_DIR/pre-deploy
+    fi
+
+    for file in *.json; do
+        packer validate $file
+        packer build -var output_file=$OUTPUT_DIR/manifest-gce-$file $packerOptions $file
+
+        img=$(jp --unquoted 'builds | [0].artifact_id' < $OUTPUT_DIR/manifest-gce-$file)
+        base=${file%.json}
+        echo "GCE_IMAGE_${base^^}=\"$img\"" >> ${OUTPUT_DIR}/images.env
+    done
+
+    if [ -x $ROOT_DIR/post-deploy ]; then
+        source $ROOT_DIR/post-deploy
+    fi
+}
+
+cd $ROOT_DIR
+build

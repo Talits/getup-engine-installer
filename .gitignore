@@ -3,9 +3,15 @@ ansible/certs
 *.crt
 *.pem
 *.sw?
+.*~
 environment*
 plan.*
+**/*.tfstate
 state
 scripts/origin
 .suffix
-.*\.yml~.*
+.terraform
+images/*/*-manifest.json
+**/crash.log
+NetrwTreeListing*
+terraform/gce/outputs.tf

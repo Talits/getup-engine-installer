@@ -1222,6 +1222,10 @@ openshift_prometheus_alertmanager_cpu_requests="50m"
 openshift_prometheus_alertmanager_cpu_limit="100m"
 
 # Grafana
+openshift_grafana_prometheus_namespace="openshift-metrics"
+openshift_grafana_prometheus_serviceaccount="prometheus"
+openshift_grafana_prometheus_route="prometheus"
+
 openshift_grafana_node_selector={"node-role.kubernetes.io/infra": "true"}
 openshift_grafana_storage_type="${OPENSHIFT_MONITORING_STORAGE_TYPE}"
 openshift_grafana_pvc_storage_class_name="${OPENSHIFT_MONITORING_STORAGE_CLASS_NAME}"
@@ -1251,7 +1255,7 @@ osm_default_node_selector="node-role.kubernetes.io/compute=true"
 infra_count=${INFRA_COUNT}
 getupcloud_namespace_node_selector="node-role.kubernetes.io/infra=true"
 
-getupcloud_cluster_name="${NAME}"
+getupcloud_cluster_name="${CLUSTER_ID}"
 getupcloud_cluster_zone="${CLUSTER_ZONE}"
 getupcloud_apps_zone="${APPS_ZONE}"
 getupcloud_portal_endpoint="${PORTAL_ENDPOINT}"

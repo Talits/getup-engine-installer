@@ -18,7 +18,6 @@ spec:
           - name: openshift-ansible
             image: getupcloud/certificate-checker:latest
             imagePullPolicy: Always
-            restartPolicy: Never
             env:
             - name: ANSIBLE_CONFIG
               value: /etc/ansible/ansible.cfg
@@ -43,6 +42,7 @@ spec:
               mountPath: /opt/app-root/src/.ssh
             - name: hosts
               mountPath: /opt/app-root/src/ansible
+          restartPolicy: Never
           volumes:
           - name: dotssh
             secret:

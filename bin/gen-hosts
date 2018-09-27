@@ -31,22 +31,46 @@ if [ -v SERVICE_NETWORK_CIDR ]; then
     echo "openshift_portal_net=${SERVICE_NETWORK_CIDR}"
 fi
 
-# Build master named certs config
+##
+## Certificates
+##
 
-if gen-certificate-config ${CLUSTER_ZONE} openshift_master_named_certificates console.${CLUSTER_ZONE} ${API_ENDPOINT} ${API_ENDPOINT_INTERNAL} ${EXTRA_CLUSTER_NAMES}; then
+# Select certificate
+if [ "${ACME_ENABLED}" == true ] && \
+   [ -n "${ACME_CLUSTER_PRIVATE_KEY_PEM}" ] && \
+   [ -n "${ACME_CLUSTER_CERTIFICATE_PEM}" ] && \
+   [ -n "${ACME_CLUSTER_ISSUER_PEM}" ]; then
+    echo -e "$ACME_CLUSTER_PRIVATE_KEY_PEM" > $CERTS_DIR/${CLUSTER_ZONE}.key
+    echo -e "$ACME_CLUSTER_CERTIFICATE_PEM" > $CERTS_DIR/${CLUSTER_ZONE}.crt
+    echo -e "$ACME_CLUSTER_ISSUER_PEM"      > $CERTS_DIR/ca-${CLUSTER_ZONE}.crt
+fi
+
+if [ "${ACME_ENABLED}" == true ] && \
+   [ -n "${ACME_APPS_PRIVATE_KEY_PEM}" ] && \
+   [ -n "${ACME_APPS_CERTIFICATE_PEM}" ] && \
+   [ -n "${ACME_APPS_ISSUER_PEM}" ]; then
+    echo -e "$ACME_APPS_PRIVATE_KEY_PEM" > $CERTS_DIR/${APPS_ZONE}.key
+    echo -e "$ACME_APPS_CERTIFICATE_PEM" > $CERTS_DIR/${APPS_ZONE}.crt
+    echo -e "$ACME_APPS_ISSUER_PEM"      > $CERTS_DIR/ca-${APPS_ZONE}.crt
+fi
+
+# Build master named certs config
+if gen-certificate-config ${CLUSTER_ZONE} openshift_master_named_certificates \
+        console.${CLUSTER_ZONE} \
+        ${API_ENDPOINT} \
+        ${API_ENDPOINT_INTERNAL} \
+        ${EXTRA_CLUSTER_NAMES}; then
     check-certificate ${CLUSTER_ZONE} "${CERTS_DIR}/${CLUSTER_ZONE}.crt"
-#else
-#    sleep 3
 fi
 
 # Build router named certs config
-
 if gen-certificate-config ${APPS_ZONE} openshift_hosted_router_certificate; then
     check-certificate ${APPS_ZONE} "${CERTS_DIR}/${APPS_ZONE}.crt"
-#else
-#    sleep 3
 fi
 
+##
+## Provedir specific configs
+##
 
 case "${PROVIDER}" in
     aws)
@@ -112,9 +136,10 @@ EOF
     gce)
         cat <<-EOF
 			openshift_cloudprovider_kind='${PROVIDER}'
-			openshift_gcp_project='${GCE_PROJECT_ID}'
-			openshift_gcp_prefix='${GCE_CLUSTER_PREFIX}'
+			openshift_gcp_project='${GOOGLE_PROJECT}'
+			openshift_gcp_prefix='${CLUSTER_ID}'
 			openshift_gcp_multizone=True
+			openshift_gcp_network_name='${CLUSTER_ID}'
 
 			openshift_storageclass_parameters="{'type':'pd-ssd'}"
 

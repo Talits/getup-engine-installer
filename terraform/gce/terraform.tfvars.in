@@ -1,0 +1,33 @@
+openshift_release = "${TARGET_OPENSHIFT_RELEASE}"
+
+cluster_id      = "${CLUSTER_ID}"
+cluster_zone    = "${CLUSTER_ZONE}"
+apps_zone       = "${APPS_ZONE}"
+
+master_count        = "${MASTER_COUNT}"
+infra_count         = "${INFRA_COUNT}"
+app_count           = "${APP_COUNT}"
+use_high_perf_disks = "${USE_HIGH_PERF_DISKS}"
+high_perf_disk_type = "${HIGH_PERF_DISK_TYPE}"
+
+gce_instance_bastion = "${GCE_INSTANCE_BASTION}"
+gce_instance_master  = "${GCE_INSTANCE_MASTER}"
+gce_instance_infra   = "${GCE_INSTANCE_INFRA}"
+gce_instance_app     = "${GCE_INSTANCE_APP}"
+
+gce_image_bastion   = "${GCE_IMAGE_BASTION}"
+gce_image_master    = "${GCE_IMAGE_OPENSHIFT}"
+gce_image_infra     = "${GCE_IMAGE_OPENSHIFT}"
+gce_image_app       = "${GCE_IMAGE_OPENSHIFT}"
+
+gce_credentials     = "${GOOGLE_CREDENTIALS}"
+gce_project         = "${GOOGLE_PROJECT}"
+gce_region          = "${GOOGLE_REGION}"
+gce_zones           = "${GOOGLE_ZONES}"
+
+user                = "${DEFAULT_USER}"
+id_rsa_pub_file     = "${ID_RSA_PUB_FILE}"
+
+acme_enabled        = "${ACME_ENABLED}"
+acme_email_address  = "${ACME_EMAIL_ADDRESS}"
+acme_mode           = "${ACME_MODE}"

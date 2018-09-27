@@ -32,9 +32,6 @@ export AZUREDNS_CLIENTSECRET=$AZURE_CLIENT_SECRET
 
 set -e
 
-CERTS_DIR=$STATE_DIR/certs
-mkdir -p $CERTS_DIR
-
 function issue()
 {
     local zone=$1

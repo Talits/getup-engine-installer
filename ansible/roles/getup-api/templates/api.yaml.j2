@@ -90,6 +90,8 @@ spec:
               cpu: 100m
               memory: 512Mi
         terminationMessagePath: /dev/termination-log
+      serviceAccount: project-deployer
+      serviceAccountName: project-deployer
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       terminationGracePeriodSeconds: 30

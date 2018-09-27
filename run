@@ -2,7 +2,7 @@
 
 set -e
 
-version=v3.10
+version=v3.9
 
 if [ $# -lt 1 ]; then
     echo "Usage: $0 cluster-name [version=$version] [docker-run-options...]"
@@ -47,23 +47,7 @@ echo "Container: $container_name"
 echo "State dir: $state_dir"
 echo
 
-# Read id_rsa content
-
-if [ -z "${ID_RSA}" ]; then
-    if [ -r "${ID_RSA_FILE}" ]; then
-        ID_RSA="$(<$ID_RSA_FILE)"
-    elif [ -r "$state_dir/id_rsa" ]; then
-        ID_RSA="$(<$state_dir/id_rsa)"
-    elif [ -r "~/.ssh/id_rsa" ]; then
-        ID_RSA="$(<~/.ssh/id_rsa)"
-    else
-        echo "Missing ssh private key"
-        exit 1
-    fi
-fi
-
 # Prepend cluster search domain
-eval cluster_zone=$(awk -F= '/^CLUSTER_ZONE=/{print $2}' ${state_dir}/getupengine.env 2>/dev/null)
 search=$(grep search /etc/resolv.conf | cut -f2- -d' ')
 
 # setup permissions
@@ -78,14 +62,49 @@ sudo chgrp -R $(id -g) ${state_dir}
 
 bin/open-state ${state_dir}
 
+if ! grep CLUSTER_ID -qw $state_dir/getupengine.env; then
+    echo "Invalid file: getupengine.env"
+    exit 1
+fi
+
+set -a
+source $state_dir/getupengine.env
+set +a
+
+state_backend_vars=(
+    STATE_BACKEND_AWS_ACCESS_KEY_ID
+    STATE_BACKEND_AWS_SECRET_ACCESS_KEY
+    STATE_BACKEND_AWS_DEFAULT_REGION
+)
+
+for var in ${state_backend_vars[*]}; do
+    if ! [ -v $var ]; then
+        read -sp "$var: " $var
+        echo
+    fi
+done
+
+if [ -n "$STATE_BACKEND_AWS_ACCESS_KEY_ID" -a "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -ne 20 ]; then
+    echo Invalid STATE_BACKEND_AWS_ACCESS_KEY_ID length: ${#STATE_BACKEND_AWS_ACCESS_KEY_ID}
+    exit 1
+fi
+
+if [ -n "$STATE_BACKEND_AWS_SECRET_ACCESS_KEY" -a "${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}" -ne 40 ]; then
+    echo Invalid STATE_BACKEND_AWS_SECRET_ACCESS_KEY length: ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}
+    exit 1
+fi
+
 echo "---> Starting container ${container_name} from image $image"
 trap "$PWD/bin/close-state ${state_dir}" EXIT
 
 sudo docker run -it --rm $@ \
     -v ${state_dir}/:/state \
     --env-file ${state_dir}/getupengine.env \
-    -e "ID_RSA=${ID_RSA}" \
+    -e "STATE_KEY=${STATE_KEY}" \
+    -e "STATE_BACKEND_AWS_ACCESS_KEY_ID=$STATE_BACKEND_AWS_ACCESS_KEY_ID" \
+    -e "STATE_BACKEND_AWS_SECRET_ACCESS_KEY=$STATE_BACKEND_AWS_SECRET_ACCESS_KEY" \
+    -e "STATE_BACKEND_AWS_DEFAULT_REGION=$STATE_BACKEND_AWS_DEFAULT_REGION" \
     --name ${container_name} \
-    ${cluster_zone:+--dns-search $cluster_zone} \
-    $(for dom in $search; do [ $cluster_zone != $dom ] && echo --dns-search $dom; done) \
+    ${CLUSTER_ZONE:+--dns-search $CLUSTER_ZONE} \
+    $(for dom in $search; do [ $CLUSTER_ZONE != $dom ] && echo --dns-search $dom; done) \
     $image bash

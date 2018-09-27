@@ -1,6 +1,2 @@
 ---
-- local_action: stat path="{{ getupcloud_api_repository_key_file }}"
-  register: stat_key_file
-
 - include_tasks: install-getup-api.yml
-  when: stat_key_file.stat.exists == true

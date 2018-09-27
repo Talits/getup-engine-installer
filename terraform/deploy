@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 export NEWRELIC_LICENSE_KEY=${NEWRELIC_LICENSE_KEY}
 export REGISTRY_PREFIX=${REGISTRY_PREFIX:+$REGISTRY_PREFIX-}
@@ -6,28 +6,45 @@ export TERRAFORM_BIN=${TERRAFORM_BIN:-terraform}
 export STATE_DIR=${TERRAFORM_STATE_DIR:-/state}
 export ROOT_DIR="$(dirname $0)"
 
-echo Sourcing $STATE_DIR/getupengine.env
-source $STATE_DIR/getupengine.env
+for envFile in $STATE_DIR/images/images.env $STATE_DIR/getupengine.env; do
+    if [ -e "$envFile" ]; then
+        echo Sourcing $envFile
+        set -a
+        source $envFile
+        set +a
+    fi
+done
 
 if [ "${PROVIDER}" == azure ]; then
     echo Checking if Azure is logged in...
     if ! az account show 2>/dev/null | grep -q .; then
         az account get-access-token &>/dev/null || az login || exit 1
     fi
+
 elif [ "${PROVIDER}" == aws ]; then
     echo Retrieving AWS IAM UserId
     export AWS_USER_ID=$(aws iam get-user --query User.UserId --output text)
+
+elif [ "${PROVIDER}" == gce ]; then
+    ##
+    ## Workaround for dynamic backend{} blocks
+    ##
+    ##########
+    j=$(( $(wc -w <<<"${GOOGLE_ZONES:-.}") - 1))
+    for i in $(seq -s ' ' 0 $j); do
+        echo -n "backend{group=\"\${var.master_instance_groups[${i}]}\"} "
+    done > /tmp/backend_groups.in
+    sed "s|%MASTER_INSTANCE_GROUPS%|$(</tmp/backend_groups.in)|" terraform/gce/modules/lb/backend_service.tf.in > terraform/gce/modules/lb/backend_service.tf
+    ##########
 else
     echo Missing or unknown provider $PROVIDER
     exit 1
 fi
 
-if [ -z "${NAME}" ]; then
-    echo 'Missing deploy name'
+if [ -z "${CLUSTER_ID}" ]; then
+    echo 'Missing Cluster ID'
     exit 1
 fi
-
-export PREFIX="${NAME}-"
 
 #scale_master=0
 scale_infra=0
@@ -39,8 +56,9 @@ assume_no=0
 no_plan=0
 dry_run=0
 opts=""
-state=""
 plan=${STATE_DIR}/terraform.plan
+target=""
+init=0
 
 for opt; do
     case $1 in
@@ -53,13 +71,14 @@ for opt; do
         --plan) shift; plan=${1};;
         --no-plan) no_plan=1;;
         --dry-run) dry_run=1;;
+        --target) shift; target+="-target=$1 ";;
+        --init) init=1;;
         *) opts="$opts $1"
     esac
     shift
 done
 
-source setup-state-backend
-
+source setup-state-backend && setup_state_backend
 
 if [ $scale_infra -gt 0 ]; then
     scale_to=$((scale_infra + INFRA_COUNT))
@@ -81,22 +100,32 @@ cd ${ROOT_DIR}/${PROVIDER}
 
 envsubst < ./terraform.tfvars.in > ${STATE_DIR}/terraform.tfvars
 
-echo Validating...
+echo Reconfiguring modules...
+rm -rf "./.terraform/modules/"
+${TERRAFORM_BIN} init -var-file=${STATE_DIR}/terraform.tfvars
+
+echo Validating terraform...
 ${TERRAFORM_BIN} validate -var-file=${STATE_DIR}/terraform.tfvars
 
-if [ $destroy == 1 ]; then
+if [ $init == 1 ]; then
+    if [ ${PROVIDER} == 'gce' ]; then
+        target+="--target module.vpc --target module.dns $target"
+        echo "Restricting to ${PROVIDER^^} initialization targets only: $target"
+    fi
+
+elif [ $destroy == 1 ]; then
     echo "Destroying... [$plan]"
 
-    if [ $assume_yes == 1 ]; then
-        opts="$opts -force"
+    opts="$opts -force"
+    if [ ${PROVIDER} == 'aws' -a $assume_yes == 1 ]; then
         aws s3 rm --recursive s3://${GETUPCLOUD_BACKUP_STORAGE_S3_BUCKET}/ || true
     fi
-    exec ${TERRAFORM_BIN} destroy -var-file=${STATE_DIR}/terraform.tfvars ${opts} ${state:+-state=$state}
+    exec ${TERRAFORM_BIN} destroy -var-file=${STATE_DIR}/terraform.tfvars ${opts} ${target} ${TERRAFORM_STATE_FILE:+-state=$TERRAFORM_STATE_FILE}
 fi
 
 if [ $no_plan == 0 ]; then
     echo "Planning... [$plan]"
-    ${TERRAFORM_BIN} plan -var-file=${STATE_DIR}/terraform.tfvars ${opts} ${state:+-state=$state} -out=${plan}
+    ${TERRAFORM_BIN} plan -var-file=${STATE_DIR}/terraform.tfvars ${opts} ${target} ${TERRAFORM_STATE_FILE:+-state=$TERRAFORM_STATE_FILE} -out=${plan}
 fi
 
 if [ $assume_no == 1 ]; then
@@ -117,11 +146,11 @@ fi
 trap save-state EXIT
 
 echo Applying...
-${TERRAFORM_BIN} apply ${opts} ${state:+-state-out=$state} ${plan}
+${TERRAFORM_BIN} apply ${opts} ${target} ${TERRAFORM_STATE_FILE:+-state-out=$TERRAFORM_STATE_FILE} ${plan}
 ret=$?
 
 echo Converting output to $STATE_DIR/terraform-out.env
-${TERRAFORM_BIN} output -json ${state:+-state=$state} | EXPORT=1 config2env > $STATE_DIR/terraform-out.env
+${TERRAFORM_BIN} output -json ${TERRAFORM_STATE_FILE:+-state=$TERRAFORM_STATE_FILE} | EXPORT=1 config2env > $STATE_DIR/terraform-out.env
 
 if [ $ret -eq 0 -a $scale_infra -gt 0 ]; then
     echo Updating state: INFRA_COUNT=$INFRA_COUNT

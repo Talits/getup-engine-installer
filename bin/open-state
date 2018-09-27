@@ -1,9 +1,34 @@
 #!/bin/bash
 
-state_dir=${1:-$state_dir}
+state=${1:-$STATE_DIR}
 
-if ! [ -d ${state_dir} ]; then
-    echo Unable to open state dir: $state_dir
+if [ -z "$STATE_KEY" ]; then
+    read -sp "Decryption Key: " STATE_KEY
+    echo
+    export STATE_KEY=$(/usr/bin/printf "%32.32s" $STATE_KEY | tr -t ' ' '.')
 fi
 
-echo Opening state dir $state_dir
+function open-file()
+{
+    local infile=$1
+    local outfile=$2
+
+    openssl aes-256-cbc -d -base64 -in "${infile}" -out "${outfile}" -pass env:STATE_KEY 2>/dev/null
+}
+
+if [ -f ${state} ]; then
+    open-file $state /dev/stdout
+elif [ -d ${state} ]; then
+    echo -n Opening state dir $state >&2
+
+    find $state -path $state/.terraform -prune -o -type f -name '*.enc' -print | while read file; do
+        #echo " --> $file ${file%.enc}" >&2
+        echo -n . >&2
+        open-file $file ${file%.enc} || ret=1
+    done
+    echo >&2
+    exit $ret
+else
+    echo Unable to open state: $state >&2
+    exit 1
+fi

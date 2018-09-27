@@ -10,10 +10,6 @@ getupcloud_install_console: true
 getupcloud_install_billing: true
 getupcloud_install_backup: false
 
-getupcloud_api_repository: "git@github.com:getupcloud/getup-api.git"
-getupcloud_api_repository_branch: "master"
-getupcloud_api_repository_key_file: "/state/getup-api-id_rsa"
-
 getupcloud_api_django_default_logger: "production"
 kubernetes_service_account_token_file: "/run/secrets/kubernetes.io/serviceaccount/token"
 getupcloud_api_allow_session_authentication: False
@@ -98,6 +94,7 @@ getupcloud_observer_template_name: "observer"
 getupcloud_observer_message_frequency: 50
 
 getupcloud_pager_duty_service_key: ""
+getupcloud_pager_duty_check_config: ""
 getupcloud_slack_token: ""
 getupcloud_slack_operations_webhook: ""
 getupcloud_slack_operations_channel: "#operations"

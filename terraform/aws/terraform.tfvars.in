@@ -1,6 +1,6 @@
 openshift_release = "${TARGET_OPENSHIFT_RELEASE}"
 
-prefix          = "${PREFIX}"
+prefix          = "${CLUSTER_ID}-"
 cluster_id      = "${CLUSTER_ID}"
 cluster_zone    = "${CLUSTER_ZONE}"
 cluster_zone_id = "${AWS_CLUSTER_ZONE_ID}"

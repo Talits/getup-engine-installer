@@ -14,6 +14,9 @@ fi
 ROOT_DIR=${0%/*}
 cd $ROOT_DIR
 
+export OUTPUT_DIR=$STATE_DIR/images
+mkdir -p $OUTPUT_DIR/
+
 for p in ${PROVIDER}; do
     if [ -d $p ]; then
         echo "#MARK - `date` - Creating $p images"

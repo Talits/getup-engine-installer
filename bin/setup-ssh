@@ -24,22 +24,16 @@ export ID_RSA_FILE=~/.ssh/id_rsa
 export ID_RSA_PUB_FILE=${ID_RSA_FILE}.pub
 
 echo Saving ssh keys:
-echo "  - $ID_RSA_FILE"
-echo "  - $ID_RSA_PUB_FILE"
+echo "--> $ID_RSA_FILE"
+echo "--> $ID_RSA_PUB_FILE"
 
-if [ ! -e  "${ID_RSA_FILE}" ]; then
-    echo -e "${ID_RSA}" > ${ID_RSA_FILE}
-fi
-chmod 0600 ${ID_RSA_FILE}
-
+install --mode=0600 ${STATE_DIR}/id_rsa ${ID_RSA_FILE}
 ssh-keygen -yf ${ID_RSA_FILE} > ${ID_RSA_PUB_FILE}
-export ID_RSA_PUB="$(<${ID_RSA_PUB_FILE})"
-
 chmod 0600 ${ID_RSA_PUB_FILE}
 
-if [ -z "${SSH_AUTH_SOCK}" ]; then
-    eval `ssh-agent -s`
-    sleep 1
-    ssh-add ${ID_RSA_FILE}
-fi
+export ID_RSA="$(<${ID_RSA_FILE})"
+export ID_RSA_PUB="$(<${ID_RSA_PUB_FILE})"
+
+ssh-add ${ID_RSA_FILE}
+
 echo

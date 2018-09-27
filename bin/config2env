@@ -44,7 +44,6 @@ def print_assoc(k, v):
 
 def print_item(data):
     for k, v in data.items():
-
         if isinstance(v, (int, str, float)):
             print_literal(k, v)
             continue
@@ -56,9 +55,9 @@ def print_item(data):
         if isinstance(v, (list, tuple)):
             print_list(k, v)
         elif isinstance(v, (dict, set)):
-            found = list(filter(lambda i: v.get(i), ['value', 'values', 'item', 'items']))
-            if found:
-                print_item({k: v[found[0]]})
+            key_names = list(filter(lambda i: i in v, ['value', 'values', 'item', 'items']))
+            if key_names:
+                print_item({k: v[key_names[0]]})
             else:
                 print_assoc(k, v)
         else:

@@ -1,9 +1,9 @@
-FROM openshift/origin-ansible:v3.10
+FROM getupcloud/origin-ansible:v3.10
 
 USER root
 
-ENV PACKER_VERSION=1.2.3 \
-    TERRAFORM_VERSION=0.11.3 \
+ENV PACKER_VERSION=1.2.5 \
+    TERRAFORM_VERSION=0.11.8 \
     TARGET_OPENSHIFT_RELEASE=v3.10 \
     TARGET_OPENSHIFT_VERSION=3.10.0 \
     PATH=/getup-engine/bin/:$PATH \
@@ -16,10 +16,10 @@ ENV PACKER_VERSION=1.2.3 \
 COPY yum.repos.d/*.repo /etc/yum.repos.d/
 
 RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
-    yum install -y gettext unzip sudo bind-utils azure-cli python2-pip google-cloud-sdk which patch && \
+    yum install -y gettext unzip sudo bind-utils azure-cli python2-pip google-cloud-sdk which patch git && \
     yum clean all && \
     pip install --upgrade pip && \
-    pip install awscli && \
+    pip install awscli pyaml && \
     mkdir -p /getup-engine/bin && \
     ln -s /usr/share/ansible/openshift-ansible /openshift-ansible && \
     \
@@ -45,13 +45,21 @@ RUN sed -ie \
     's/--web.listen-address=localhost:9090/--web.listen-address=0.0.0.0:9090/' \
     /usr/share/ansible/openshift-ansible/roles/openshift_prometheus/templates/prometheus.j2
 
+WORKDIR /getup-engine
+
+ENTRYPOINT [ "/getup-engine/bin/entrypoint" ]
+
+CMD [ "/bin/bash" ]
+
 ADD images/ /getup-engine/images
 ADD terraform/ /getup-engine/terraform
 ADD state-backend/ /getup-engine/state-backend
 
-
-RUN for provider in /getup-engine/terraform/*/ /getup-engine/images/azure/; \
-    do cd $provider && terraform init || exit 1; done
+RUN for provider in /getup-engine/terraform/*/ /getup-engine/images/azure/; do \
+      echo "Terraform init [$provider]" && \
+      cd $provider && \
+      terraform init -upgrade -reconfigure -input=false || exit 1; \
+    done
 
 ADD ansible /getup-engine/ansible
 
@@ -64,14 +72,9 @@ ADD bin/ /getup-engine/bin/
 
 ARG RELEASE
 
-RUN chmod ug+rw /getup-engine && \
+RUN chmod -R ug+rw,o-w /getup-engine && \
     chmod -R +x /getup-engine/bin/ && \
+    chown -R 1001 /getup-engine/* && \
     echo $RELEASE > /getup-engine/release
 
 USER 1000
-
-WORKDIR /getup-engine
-
-ENTRYPOINT [ "/getup-engine/bin/entrypoint" ]
-
-CMD [ "/bin/bash" ]

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 case $TARGET_OPENSHIFT_RELEASE in
     v3.9|v3.10) ;;
@@ -62,13 +62,18 @@ set -e
 for file in ${ROOT_DIR}/roles/defaults/*; do
     EXPORT=1 config2env $file
 done > /tmp/ansible-defaults.env
+
 echo Sourcing ansible defaults /tmp/ansible-defaults.env
+set -a
 source /tmp/ansible-defaults.env
+set +a
 
 # Load inputs
 for file in getupengine.env terraform-out.env; do
     echo Sourcing $STATE_DIR/$file
+    set -a
     source $STATE_DIR/$file
+    set +a
 done
 
 # Setup openshift-ansible
@@ -83,14 +88,14 @@ if [ -z "${CONTAINERIZED}" ];then
     echo "CONTAINERIZED=${CONTAINERIZED}" >> $STATE_DIR/getupengine.env
 fi
 
-if [ -z "${OPENSHIFT_MASTER_SESSION_AUTH_SECRETS}" ]; then
-    export OPENSHIFT_MASTER_SESSION_AUTH_SECRETS="$(openssl rand -base64 24)"
-    echo "OPENSHIFT_MASTER_SESSION_AUTH_SECRETS='${OPENSHIFT_MASTER_SESSION_AUTH_SECRETS}'" >> $STATE_DIR/getupengine.env
+if [ -z "${OPENSHIFT_MASTER_SESSION_AUTH_SECRET}" ]; then
+    export OPENSHIFT_MASTER_SESSION_AUTH_SECRET="$(openssl rand -base64 24)"
+    echo "OPENSHIFT_MASTER_SESSION_AUTH_SECRET='${OPENSHIFT_MASTER_SESSION_AUTH_SECRET}'" >> $STATE_DIR/getupengine.env
 fi
 
-if [ -z "${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRETS}" ]; then
-    export OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRETS="$(openssl rand -base64 24)"
-    echo "OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRETS='${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRETS}'" >> $STATE_DIR/getupengine.env
+if [ -z "${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET}" ]; then
+    export OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET="$(openssl rand -base64 24)"
+    echo "OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET='${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET}'" >> $STATE_DIR/getupengine.env
 fi
 
 # Azure needs fqdn

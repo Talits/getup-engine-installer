@@ -65,7 +65,6 @@ variable "user" {
 
 variable "cluster_id" {
     type    = "string"
-    default = "owned"
 }
 #########################################
 ###### Provider specific variables
@@ -283,22 +282,21 @@ resource "aws_instance" "masters" {
     source_dest_check           = true
     disable_api_termination     = "${var.aws_disable_api_termination}"
 
+    lifecycle {
+        ignore_changes = [ "ebs_block_device", "tags", "volume_tags" ]
+    }
+
     tags = {
         ResourceGroup = "${var.aws_resource_group}"
         Name          = "${var.prefix}master-${count.index}"
         Role          = "master"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 
     volume_tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name          = "${var.prefix}master-${count.index}"
     }
-}
-
-module "dns" "xxx" {
-  source = "./dns"
-
 }
 
 resource "aws_route53_record" "masters-SRV" {
@@ -337,7 +335,7 @@ resource "aws_instance" "infras" {
         ResourceGroup = "${var.aws_resource_group}"
         Name          = "${var.prefix}infra-${count.index}"
         Role          = "infra"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 
     volume_tags {
@@ -389,7 +387,7 @@ resource "aws_instance" "apps" {
         ResourceGroup = "${var.aws_resource_group}"
         Name          = "${var.prefix}app-${count.index}"
         Role          = "app"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 
     volume_tags {
@@ -447,7 +445,7 @@ resource "aws_elb" "api_external" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}api-external"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -481,7 +479,7 @@ resource "aws_elb" "api_internal" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}api-internal"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -523,7 +521,7 @@ resource "aws_elb" "infra" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}infra"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -824,7 +822,7 @@ resource "aws_security_group" "bastion" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}bastion"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -855,7 +853,7 @@ resource "aws_security_group" "master" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}master"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -949,7 +947,7 @@ resource "aws_security_group" "etcd" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}etcd"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -998,7 +996,7 @@ resource "aws_security_group" "infra" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}infra"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -1065,7 +1063,7 @@ resource "aws_security_group" "infra_elb" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}infra-elb"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -1114,7 +1112,7 @@ resource "aws_security_group" "node" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}node"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -1199,7 +1197,7 @@ resource "aws_security_group" "api_internal" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}api-internal"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 
@@ -1248,7 +1246,7 @@ resource "aws_security_group" "api_external" {
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name = "${var.prefix}api-external"
-        "kubernetes.io/cluster/id" = "${var.cluster_id}"
+        "kubernetes.io/cluster/id" = "owned"
     }
 }
 

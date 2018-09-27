@@ -202,15 +202,18 @@ scrape_configs:
 #    target_label: role
 #    replacement: ec2
 
-#- job_name: etcd
-#  scheme: https
-#  tls_config:
-#    insecure_skip_verify: true
-#  static_configs:
-#    - targets:
-#      - 'ip-10-0-1-1.ec2.internal:2379'
-#      - 'ip-10-0-2-2.ec2.internal:2379'
-#      - 'ip-10-0-3-3.ec2.internal:2379'
+- job_name: 'etcd'
+  kubernetes_sd_configs:
+  - role: endpoints
+  relabel_configs:
+  - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+    action: keep
+    regex: default;kubernetes;https
+  - source_labels: [__address__]
+    action: replace
+    target_label: __address__
+    regex: (.+)(?::\d+)
+    replacement: localhost:2379
 
 - job_name: "router-nodes"
   basic_auth:
@@ -260,21 +263,21 @@ scrape_configs:
     target_label: role
     replacement: infra
 
-- job_name: "app-nodes"
-  dns_sd_configs:
-    - names:
-      - apps.{{ cluster_zone }}
-      type: SRV
-  relabel_configs:
-  - source_labels: [__address__]
-    action: replace
-    target_label: server_name
-    regex: ([^\.]+).*
-  - source_labels: [__address__]
-    action: replace
-    regex: .*
-    target_label: role
-    replacement: app
+#- job_name: "app-nodes"
+#  dns_sd_configs:
+#    - names:
+#      - apps.{{ cluster_zone }}
+#      type: SRV
+#  relabel_configs:
+#  - source_labels: [__address__]
+#    action: replace
+#    target_label: server_name
+#    regex: ([^\.]+).*
+#  - source_labels: [__address__]
+#    action: replace
+#    regex: .*
+#    target_label: role
+#    replacement: app
 
 alerting:
   alertmanagers:

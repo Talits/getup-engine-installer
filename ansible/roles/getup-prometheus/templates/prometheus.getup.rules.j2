@@ -1,9 +1,122 @@
 groups:
+- name: etcd3_alert.rules
+  rules:  
+  - alert: NoLeader
+    expr: etcd_server_has_leader{job="etcd"} == 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+{% raw %}
+      description: etcd member {{ $labels.instance }} has no leader
+      summary: etcd member has no leader
+{% endraw %}
+
+  - alert: HighNumberOfLeaderChanges
+    expr: increase(etcd_server_leader_changes_seen_total{job="etcd"}[1h]) > 3
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: etcd instance {{ $labels.instance }} has seen {{ $value }} leader
+        changes within the last hour
+      summary: a high number of leader changes within the etcd cluster are happening
+{% endraw %}
+  - alert: HighNumberOfFailedGRPCRequests
+    expr: 100 * (sum(rate(grpc_server_handled_total{grpc_code!="OK",job="etcd"}[5m])) BY (grpc_service, grpc_method)
+      / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method)) > 1
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: '{{ $value }}% of requests for {{ $labels.grpc_method }} failed
+        on etcd instance {{ $labels.instance }}'
+      summary: a high number of gRPC requests are failing
+{% endraw %}
+  - alert: HighNumberOfFailedGRPCRequests
+    expr: 100 * (sum(rate(grpc_server_handled_total{grpc_code!="OK",job="etcd"}[5m])) BY (grpc_service, grpc_method)
+      / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method)) > 5
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+{% raw %}
+      description: '{{ $value }}% of requests for {{ $labels.grpc_method }} failed
+        on etcd instance {{ $labels.instance }}'
+      summary: a high number of gRPC requests are failing
+{% endraw %}
+  - alert: FdExhaustionClose
+    expr: predict_linear(instance:fd_utilization[1h], 3600 * 4) > 1
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: '{{ $labels.job }} instance {{ $labels.instance }} will exhaust
+        its file descriptors soon'
+      summary: file descriptors soon exhausted
+{% endraw %}
+  - alert: FdExhaustionClose
+    expr: predict_linear(instance:fd_utilization[10m], 3600) > 1
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+{% raw %}
+      description: '{{ $labels.job }} instance {{ $labels.instance }} will exhaust
+        its file descriptors soon'
+      summary: file descriptors soon exhausted
+{% endraw %}
+  - alert: EtcdMemberCommunicationSlow
+    expr: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m]))
+      > 0.15
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: etcd instance {{ $labels.instance }} member communication with
+        {{ $labels.To }} is slow
+      summary: etcd member communication is slow
+{% endraw %}
+  - alert: HighNumberOfFailedProposals
+    expr: increase(etcd_server_proposals_failed_total{job="etcd"}[1h]) > 5
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: etcd instance {{ $labels.instance }} has seen {{ $value }} proposal
+        failures within the last hour
+      summary: a high number of proposals within the etcd cluster are failing
+{% endraw %}
+  - alert: HighFsyncDurations
+    expr: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m]))
+      > 0.5
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: etcd instance {{ $labels.instance }} fync durations are high
+      summary: high fsync durations
+{% endraw %}
+  - alert: HighCommitDurations
+    expr: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[5m]))
+      > 0.25
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+{% raw %}
+      description: etcd instance {{ $labels.instance }} commit durations are high
+      summary: high commit durations
+{% endraw %}
 - name: docker.rules
   rules:
   - alert: DockerHasErrors
-    expr: irate(kubelet_docker_operations_errors{operation_type!~"remove_container|start_container|inspect_container|inspect_image|inspect_exec|operation_type|logs"}[10m]) > 1
-    for: 5m
+    expr: irate(kubelet_docker_operations_errors{operation_type!~"remove_container|start_container|inspect_container|inspect_image|inspect_exec|operation_type|logs"}[30m]) > 1
+    for: 30m
     labels:
       cluster: {{ cluster_name }}
       service: docker
@@ -14,8 +127,8 @@ groups:
       summary: Docker has errors
 {% endraw %}
   - alert: DockerHasTimeout
-    expr: irate(kubelet_docker_operations_timeout[5m]) > 0
-    for: 1m
+    expr: irate(kubelet_docker_operations_timeout[1h]) > 1
+    for: 1h
     labels:
       cluster: {{ cluster_name }}
       service: docker
@@ -525,38 +638,50 @@ groups:
       description: 'Disk {{$label.device}} on {{$label.instance}} will be full in 7 days'
       summary: High disk usage
 {% endraw %}
-
+  - record: pvc:usage_percent
+    expr: kubelet_volume_stats_used_bytes{namespace=~"default|getup|kube-(public|system)|logging|management-infra|openshift|openshift-(grafana|infra|metrics|node|web-console)"}/kubelet_volume_stats_capacity_bytes{namespace=~"default|getup|kube-(public|system)|logging|management-infra|openshift|openshift-(grafana|infra|metrics|node|web-console)"} * 100
+  - alert: PVCDiskUsage
+    expr: predict_linear(pvc:usage_percent[1h], 60 * 60 * 24 * 8) > 100
+    for: 24h
+    labels:
+      severity: critical
+      cluster: {{ cluster_name }}
+    annotations:
+{% raw %}
+      description: PVC {{$labels.persistentvolumeclaim}} in {{$labels.namespace}} will be full in 7 days - {{ cluster_name }}
+      summary: PVCDiskUsage
+{% endraw %}
   - alert: FailedBackup
     expr: heptio_eventrouter_warnings_current{involved_object_kind=~".*Backup"} > 1
     for: 1m
     labels:
-      cluster: getup
+      cluster: {{ cluster_name }}
       service: backup
       severity: warning
     annotations:
 {% raw %}
-      description: 'Some backup job(s) of kind {{$label.involved_object_kind}} has failed'
-      summary: Backup has failed
+      description: {{ cluster_name }} - 'Some backup job(s) of kind {{$label.involved_object_kind}} has failed'
+      summary: Backup has failed - {{ cluster_name }}
 {% endraw %}
 
   - alert: BackupNotActive
     expr: absent(heptio_eventrouter_normal_current{involved_object_kind=~".*Backup"}) > 0
     for: 24h
     labels:
-      cluster: getup
+      cluster: {{ cluster_name }}
       service: backup
       severity: warning
     annotations:
-      description: Looks like backup jobs aren't running at all.
-      summary: Backup not active
+      description: {{ cluster_name }} - Looks like backup jobs aren't running at all.
+      summary: Backup not active - {{ cluster_name }}
 
   - alert: FailedGetupJobs
     expr: sum(irate(heptio_eventrouter_warnings_total{involved_object_namespace="getup", involved_object_kind="Job", reason="BackoffLimitExceeded"}[1h])) > 0
     for: 1h
     labels:
-      cluster: getup
+      cluster: {{ cluster_name }}
       service: jobs
       severity: warning
     annotations:
-      description: Some getup jobs are failing to execute
-      summary: Failed jobs
+      description: {{ cluster_name }} - Some getup jobs are failing to execute
+      summary: {{ cluster_name }} - Failed jobs.

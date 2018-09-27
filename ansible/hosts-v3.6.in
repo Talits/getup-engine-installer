@@ -961,7 +961,7 @@ openshift_grafana_cpu_limit="2000m"
 [all:vars]
 kubernetes_api_endpoint="${API_ENDPOINT}"
 
-getupcloud_cluster_name="${NAME}"
+getupcloud_cluster_name="${CLUSTER_ID}"
 getupcloud_cluster_zone="${CLUSTER_ZONE}"
 getupcloud_apps_zone="${APPS_ZONE}"
 getupcloud_portal_endpoint="${PORTAL_ENDPOINT}"

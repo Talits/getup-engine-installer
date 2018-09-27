@@ -10,7 +10,7 @@ echo -n "Waiting for all infra nodes to join load balancer ."
 ELB_INSTANCES=()
 while [ ${#ELB_INSTANCES[*]} -lt $# ]; do
     ELB_INSTANCES=(
-        $(aws elb describe-load-balancers --load-balancer-names ${NAME}-infra \
+        $(aws elb describe-load-balancers --load-balancer-names ${CLUSTER_ID}-infra \
         --query LoadBalancerDescriptions[0].Instances \
         --output text)
     )
@@ -32,5 +32,5 @@ INSTANCE_IDS="$(grep -o 'i-[0-9a-zA-Z]\+' <<<$PROVIDER_IDS)"
 echo Deregistering instances: $INSTANCE_IDS
 
 aws elb deregister-instances-from-load-balancer \
-    --load-balancer-name ${NAME}-infra \
+    --load-balancer-name ${CLUSTER_ID}-infra \
     --instances ${INSTANCE_IDS}

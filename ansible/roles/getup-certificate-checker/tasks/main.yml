@@ -1,10 +1,10 @@
-- vars:
+- set_fact:
     hosts_content: "{{ lookup('file', '/state/hosts' + openshift_pkg_version) | string }}"
     id_rsa_content: "{{ lookup('file', '/state/id_rsa') | string }}"
     ssh_config_content: "{{ lookup('file', '/state/config') | string }}"
-    template_path: "files/cronjob-certificate-checker.yaml"
+    template_path: "cronjob-certificate-checker.yaml"
 
-- name: Create secret: dotssh
+- name: Create secret dotssh
   oc_secret:
     namespace: "{{ getupcloud_namespace }}"
     name: certificate-checker-dotssh
@@ -14,13 +14,17 @@
     - path: config
       data: "{{ ssh_config_content }}"
 
-- name: Create secret: hosts
+- name: Create secret hosts
   oc_secret:
     namespace: "{{ getupcloud_namespace }}"
     name: certificate-checker-hosts
     contents:
     - path: hosts
       data: "{{ hosts_content }}"
+
+- copy:
+    src: "{{ template_path }}"
+    dest: "{{ template_path }}"
 
 - name: Create CronJob
   oc_obj:

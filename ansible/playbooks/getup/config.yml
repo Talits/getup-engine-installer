@@ -8,7 +8,7 @@
     - always
   roles:
     - init
-
+    
 - name: Copy tools
   hosts: oo_first_master
   tags:

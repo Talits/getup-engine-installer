@@ -5,3 +5,4 @@ terraform/terraform.tfstate.d
 ./terraform/.terraform
 .gitignore
 scripts/origin
+state/
