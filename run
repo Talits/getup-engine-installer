@@ -79,9 +79,11 @@ state_backend_vars=(
 
 for var in ${state_backend_vars[*]}; do
     if ! [ -v $var ]; then
-        read -sp "$var: " $var
+        read -sp "$var (empty to ignore): " $var
         echo
     fi
+
+    [ "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -eq 0 ] || break
 done
 
 if [ -n "$STATE_BACKEND_AWS_ACCESS_KEY_ID" -a "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -ne 20 ]; then
