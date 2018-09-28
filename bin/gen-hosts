@@ -196,14 +196,7 @@ function server_name()
     local privateName=$1
 
     if [ $PROVIDER == aws ]; then
-        if ! [ -e /tmp/terraform.tfstate ]; then
-            ( cd /getup-engine/terraform/aws && ${TERRAFORM_BIN} state pull > /tmp/terraform.tfstate )
-        fi
-        /getup-engine/bin/get-instance-tag $privateName Name < /tmp/terraform.tfstate || echo ${privateName%%.*}
-
-    #elif [ $PROVIDER == azure ]; then
-    #elif [ $PROVIDER == azure ]; then
-
+        /getup-engine/bin/get-instance-tag $privateName Name < /$STATE_DIR/terraform.tfstate || echo ${privateName%%.*}
     else
         echo ${privateName%%.*}
     fi
@@ -295,8 +288,4 @@ else
 
     echo
     echo '[new_nodes] # placeholder'
-fi
-
-if [ -e /tmp/terraform.tfstate ]; then
-    rm -f /tmp/terraform.tfstate
 fi
