@@ -1,6 +1,11 @@
 groups:
+
+################
+### Etcd rules
+################
+
 - name: etcd3_alert.rules
-  rules:  
+  rules:
   - alert: NoLeader
     expr: etcd_server_has_leader{job="etcd"} == 0
     for: 1m
@@ -22,6 +27,7 @@ groups:
         changes within the last hour
       summary: a high number of leader changes within the etcd cluster are happening
 {% endraw %}
+
   - alert: HighNumberOfFailedGRPCRequests
     expr: 100 * (sum(rate(grpc_server_handled_total{grpc_code!="OK",job="etcd"}[5m])) BY (grpc_service, grpc_method)
       / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method)) > 1
@@ -34,6 +40,7 @@ groups:
         on etcd instance {{ $labels.instance }}'
       summary: a high number of gRPC requests are failing
 {% endraw %}
+
   - alert: HighNumberOfFailedGRPCRequests
     expr: 100 * (sum(rate(grpc_server_handled_total{grpc_code!="OK",job="etcd"}[5m])) BY (grpc_service, grpc_method)
       / sum(rate(grpc_server_handled_total{job="etcd"}[5m])) BY (grpc_service, grpc_method)) > 5
@@ -46,6 +53,7 @@ groups:
         on etcd instance {{ $labels.instance }}'
       summary: a high number of gRPC requests are failing
 {% endraw %}
+
   - alert: FdExhaustionClose
     expr: predict_linear(instance:fd_utilization[1h], 3600 * 4) > 1
     for: 10m
@@ -57,6 +65,7 @@ groups:
         its file descriptors soon'
       summary: file descriptors soon exhausted
 {% endraw %}
+
   - alert: FdExhaustionClose
     expr: predict_linear(instance:fd_utilization[10m], 3600) > 1
     for: 10m
@@ -68,6 +77,7 @@ groups:
         its file descriptors soon'
       summary: file descriptors soon exhausted
 {% endraw %}
+
   - alert: EtcdMemberCommunicationSlow
     expr: histogram_quantile(0.99, rate(etcd_network_peer_round_trip_time_seconds_bucket[5m]))
       > 0.15
@@ -80,6 +90,7 @@ groups:
         {{ $labels.To }} is slow
       summary: etcd member communication is slow
 {% endraw %}
+
   - alert: HighNumberOfFailedProposals
     expr: increase(etcd_server_proposals_failed_total{job="etcd"}[1h]) > 5
     labels:
@@ -90,6 +101,7 @@ groups:
         failures within the last hour
       summary: a high number of proposals within the etcd cluster are failing
 {% endraw %}
+
   - alert: HighFsyncDurations
     expr: histogram_quantile(0.99, rate(etcd_disk_wal_fsync_duration_seconds_bucket[5m]))
       > 0.5
@@ -101,6 +113,7 @@ groups:
       description: etcd instance {{ $labels.instance }} fync durations are high
       summary: high fsync durations
 {% endraw %}
+
   - alert: HighCommitDurations
     expr: histogram_quantile(0.99, rate(etcd_disk_backend_commit_duration_seconds_bucket[5m]))
       > 0.25
@@ -112,13 +125,17 @@ groups:
       description: etcd instance {{ $labels.instance }} commit durations are high
       summary: high commit durations
 {% endraw %}
+
+################
+### Docker rules
+################
+
 - name: docker.rules
   rules:
   - alert: DockerHasErrors
     expr: irate(kubelet_docker_operations_errors{operation_type!~"remove_container|start_container|inspect_container|inspect_image|inspect_exec|operation_type|logs"}[30m]) > 1
     for: 30m
     labels:
-      cluster: {{ cluster_name }}
       service: docker
       severity: critical
     annotations:
@@ -126,11 +143,11 @@ groups:
       description: Docker on instance {{ $labels.instance }} has errors with {{ $labels.operation_type}}
       summary: Docker has errors
 {% endraw %}
+
   - alert: DockerHasTimeout
     expr: irate(kubelet_docker_operations_timeout[1h]) > 1
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: docker
       severity: critical
     annotations:
@@ -138,11 +155,11 @@ groups:
       description: Docker on {{ $labels.instance }} has timeouts
       summary: Docker Timeout
 {% endraw %}
+
   - alert: DockerImagePullIsTakingTooLong
     expr: kubelet_docker_operations_latency_microseconds{operation_type="pull_image",quantile="0.9"} / 1000 / 1000 > 120
     for: 5m
     labels:
-      cluster: {{ cluster_name }}
       service: docker
       severity: warning
     annotations:
@@ -151,148 +168,178 @@ groups:
       summary: Docker Pull Too Long
 {% endraw %}
 
+################
+### Docker rules
+################
+
 - name: kubernetes.rules
   rules:
   - record: cluster_namespace_controller_pod_container:spec_memory_limit_bytes
     expr: sum(label_replace(container_spec_memory_limit_bytes{container_name!=""},
       "controller", "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace,
       controller, pod_name, container_name)
+
   - record: cluster_namespace_controller_pod_container:spec_cpu_shares
     expr: sum(label_replace(container_spec_cpu_shares{container_name!=""}, "controller",
       "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace, controller, pod_name,
       container_name)
+
   - record: cluster_namespace_controller_pod_container:cpu_usage:rate
     expr: sum(label_replace(irate(container_cpu_usage_seconds_total{container_name!=""}[5m]),
       "controller", "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace,
       controller, pod_name, container_name)
+
   - record: cluster_namespace_controller_pod_container:memory_usage:bytes
     expr: sum(label_replace(container_memory_usage_bytes{container_name!=""}, "controller",
       "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace, controller, pod_name,
       container_name)
+
   - record: cluster_namespace_controller_pod_container:memory_working_set:bytes
     expr: sum(label_replace(container_memory_working_set_bytes{container_name!=""},
       "controller", "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace,
       controller, pod_name, container_name)
+
   - record: cluster_namespace_controller_pod_container:memory_rss:bytes
     expr: sum(label_replace(container_memory_rss{container_name!=""}, "controller",
       "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace, controller, pod_name,
       container_name)
+
   - record: cluster_namespace_controller_pod_container:memory_cache:bytes
     expr: sum(label_replace(container_memory_cache{container_name!=""}, "controller",
       "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace, controller, pod_name,
       container_name)
+
   - record: cluster_namespace_controller_pod_container:disk_usage:bytes
     expr: sum(label_replace(container_disk_usage_bytes{container_name!=""}, "controller",
       "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace, controller, pod_name,
       container_name)
+
   - record: cluster_namespace_controller_pod_container:memory_pagefaults:rate
     expr: sum(label_replace(irate(container_memory_failures_total{container_name!=""}[5m]),
       "controller", "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace,
       controller, pod_name, container_name, scope, type)
+
   - record: cluster_namespace_controller_pod_container:memory_oom:rate
     expr: sum(label_replace(irate(container_memory_failcnt{container_name!=""}[5m]),
       "controller", "$1", "pod_name", "^(.*)-[a-z0-9]+")) BY (cluster, namespace,
       controller, pod_name, container_name, scope, type)
+
   - record: cluster:memory_allocation:percent
     expr: 100 * sum(container_spec_memory_limit_bytes{pod_name!=""}) BY (cluster)
       / sum(machine_memory_bytes) BY (cluster)
+
   - record: cluster:memory_used:percent
     expr: 100 * sum(container_memory_usage_bytes{pod_name!=""}) BY (cluster) / sum(machine_memory_bytes)
       BY (cluster)
+
   - record: cluster:cpu_allocation:percent
     expr: 100 * sum(container_spec_cpu_shares{pod_name!=""}) BY (cluster) / sum(container_spec_cpu_shares{id="/"}
       * ON(cluster, instance) machine_cpu_cores) BY (cluster)
+
   - record: cluster:node_cpu_use:percent
     expr: 100 * sum(rate(node_cpu{mode!="idle"}[5m])) BY (cluster) / sum(machine_cpu_cores)
       BY (cluster)
+
   - record: cluster_resource_verb:apiserver_latency:quantile_seconds
     expr: histogram_quantile(0.99, sum(apiserver_request_latencies_bucket) BY (le,
       cluster, job, resource, verb)) / 1e+06
     labels:
       quantile: "0.99"
+
   - record: cluster_resource_verb:apiserver_latency:quantile_seconds
     expr: histogram_quantile(0.9, sum(apiserver_request_latencies_bucket) BY (le,
       cluster, job, resource, verb)) / 1e+06
     labels:
       quantile: "0.9"
+
   - record: cluster_resource_verb:apiserver_latency:quantile_seconds
     expr: histogram_quantile(0.5, sum(apiserver_request_latencies_bucket) BY (le,
       cluster, job, resource, verb)) / 1e+06
     labels:
       quantile: "0.5"
+
   - record: cluster:scheduler_e2e_scheduling_latency:quantile_seconds
     expr: histogram_quantile(0.99, sum(scheduler_e2e_scheduling_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.99"
+
   - record: cluster:scheduler_e2e_scheduling_latency:quantile_seconds
     expr: histogram_quantile(0.9, sum(scheduler_e2e_scheduling_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.9"
+
   - record: cluster:scheduler_e2e_scheduling_latency:quantile_seconds
     expr: histogram_quantile(0.5, sum(scheduler_e2e_scheduling_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.5"
+
   - record: cluster:scheduler_scheduling_algorithm_latency:quantile_seconds
     expr: histogram_quantile(0.99, sum(scheduler_scheduling_algorithm_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.99"
+
   - record: cluster:scheduler_scheduling_algorithm_latency:quantile_seconds
     expr: histogram_quantile(0.9, sum(scheduler_scheduling_algorithm_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.9"
+
   - record: cluster:scheduler_scheduling_algorithm_latency:quantile_seconds
     expr: histogram_quantile(0.5, sum(scheduler_scheduling_algorithm_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.5"
+
   - record: cluster:scheduler_binding_latency:quantile_seconds
     expr: histogram_quantile(0.99, sum(scheduler_binding_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.99"
+
   - record: cluster:scheduler_binding_latency:quantile_seconds
     expr: histogram_quantile(0.9, sum(scheduler_binding_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.9"
+
   - record: cluster:scheduler_binding_latency:quantile_seconds
     expr: histogram_quantile(0.5, sum(scheduler_binding_latency_microseconds_bucket)
       BY (le, cluster)) / 1e+06
     labels:
       quantile: "0.5"
+
   - record: haproxy:response_errors_percent
     expr: 100 * sum(haproxy_frontend_http_responses_total{code="5xx"}) / sum(haproxy_frontend_http_responses_total)
+
   - alert: HaproxyErrorsTooHigh
     expr: haproxy:response_errors_percent > 25
     for: 5m
     labels:
-      cluster: {{ cluster_name }}
       service: haproxy
       severity: warning
     annotations:
       description: Haproxy is returning too many 5xx errors (>25%)
       summary: Too many haproxy errors ratio
+
   - alert: K8SFailedSchedulingErrorTooHigh
     expr: sum(rate(heptio_eventrouter_warnings_total{reason="FailedScheduling"}[5m]))
       > 0.15
     for: 15m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
       description: Kubernetes is failing to schedule pods. Please check nodes readiness
       summary: Too many scheduling failures
+
   - alert: K8SNodeDown
     expr: up{job="kubernetes-nodes"} == 0
     for: 30m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -301,12 +348,12 @@ groups:
         hour
       summary: Kubelet cannot be scraped
 {% endraw %}
+
   - alert: K8SNodeNotReady
     expr: sum(kube_node_status_condition{condition="Ready",status=~"(false|unknown)"})
       BY (node) > 0
     for: 15m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -315,11 +362,11 @@ groups:
         or has set itself to NotReady, for more than 15 minutes
       summary: Node status is NotReady
 {% endraw %}
+
   - alert: K8SKubeletNodeExporterDown
     expr: up{job="node-exporter"} == 0
     for: 15m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -328,45 +375,45 @@ groups:
         hour.
       summary: Kubelet node_exporter cannot be scraped
 {% endraw %}
+
   - alert: K8SKubeletDown
     expr: absent(up{job="kubernetes-nodes"}) or count(up{job="kubernetes-nodes"} ==
       0) BY (cluster) / count(up{job="kubernetes-nodes"}) BY (cluster) > 0.1
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: critical
     annotations:
       description: Prometheus failed to scrape more than 10% of kubelets, or all Kubelets
         have disappeared from service discovery.
       summary: Many Kubelets cannot be scraped
+
   - alert: K8SApiserverDown
     expr: up{job="kubernetes-apiservers"} == 0
     for: 15m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
       description: An API server could not be scraped.
       summary: API server unreachable
+
   - alert: K8SApiserverDown
     expr: absent({job="kubernetes-apiservers"}) or (count(up{job="kubernetes-apiservers"}
       == 1) BY (cluster) < count(up{job="kubernetes-apiservers"}) BY (cluster))
     for: 5m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: critical
     annotations:
       description: Prometheus failed to scrape multiple API servers, or all API servers
         have disappeared from service discovery.
       summary: API server unreachable
+
   - alert: K8SConntrackTableFull
     expr: 100 * node_nf_conntrack_entries / node_nf_conntrack_entries_limit > 50
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -374,10 +421,10 @@ groups:
       description: The nf_conntrack table is {{ $value }}% full.
       summary: Number of tracked connections is near the limit
 {% endraw %}
+
   - alert: K8SConntrackTableFull
     expr: 100 * node_nf_conntrack_entries / node_nf_conntrack_entries_limit > 90
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: critical
     annotations:
@@ -385,22 +432,22 @@ groups:
       description: The nf_conntrack table is {{ $value }}% full.
       summary: Number of tracked connections is near the limit
 {% endraw %}
+
   - alert: K8SConntrackTuningMissing
     expr: node_nf_conntrack_udp_timeout > 10
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
       description: Nodes keep un-setting the correct tunings, investigate when it
         happens.
       summary: Node does not have the correct conntrack tunings
+
   - alert: K8STooManyOpenFiles
     expr: 100 * process_open_fds{job=~"kubelet|kubernetes"} / process_max_fds > 50
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -409,11 +456,11 @@ groups:
         descriptors.'
       summary: '{{ $labels.job }} has too many open file descriptors'
 {% endraw %}
+
   - alert: K8STooManyOpenFiles
     expr: 100 * process_open_fds{job=~"kubelet|kubernetes"} / process_max_fds > 80
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: critical
     annotations:
@@ -422,12 +469,12 @@ groups:
         descriptors.'
       summary: '{{ $labels.job }} has too many open file descriptors'
 {% endraw %}
+
   - alert: K8SApiServerLatency
     expr: histogram_quantile(0.99, sum(apiserver_request_latencies_bucket{verb=~"POST|GET|DELETE|PATCH"})
       WITHOUT (instance, node, resource)) / 1e+06 > 10
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -436,23 +483,23 @@ groups:
         kube-apiserver is higher than 10s.
       summary: Kubernetes apiserver latency is high
 {% endraw %}
+
   - alert: K8SApiServerEtcdAccessLatency
     expr: etcd_request_latencies_summary{quantile="0.99"} / 1e+06 > 1
     for: 15m
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
       description: 99th percentile latency for apiserver to access etcd is higher
         than 1s.
       summary: Access to etcd is slow
+
   - alert: K8SKubeletTooManyPods
     expr: sum(label_replace(kubelet_running_pod_count, "node", "$1", "instance", "(.*)")
       * ON(node) GROUP_RIGHT() kube_node_labels) BY (node) > sum(kube_node_status_allocatable_pods)
       BY (node)
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -460,16 +507,20 @@ groups:
       description: Kubelet {{$labels.instance}} is running {{$value}} pods
       summary: Kubelet is close to pod limit
 {% endraw %}
+
   - alert: AWSTooManyAtachedDiskOnHost
     expr: count(node_disk_io_now{device=~'xv.*',role='app'}) by (server_name) > 42
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: aws
       severity: warning
     annotations:
       description: Too many disks attached to node instance
       summary: Too many disks attached to node instance
+
+################
+### Docker rules
+################
 
 - name: node.rules
   rules:
@@ -477,7 +528,6 @@ groups:
     expr: up{job=~"(master|infra|app)-nodes"} == 0
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: k8s
       severity: warning
     annotations:
@@ -486,12 +536,12 @@ groups:
         hour
       summary: Node cannot be scraped
 {% endraw %}
+
   - alert: MasterCPUUsage
     expr: ((1 - (avg(irate(node_cpu{mode="idle",role="master"}[5m])) BY (instance)))
       * 100) > 85
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: master
       severity: critical
     annotations:
@@ -500,12 +550,12 @@ groups:
         85% (current value is: {{ $value }})'
       summary: High CPU usage detected
 {% endraw %}
+
   - alert: MasterLoadAverage
     expr: node_load15{role="master"} / ON(server_name) GROUP_RIGHT() machine_cpu_cores{role="master"}
       > 2
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: master
       severity: critical
     annotations:
@@ -514,12 +564,12 @@ groups:
         is high'
       summary: High load average detected
 {% endraw %}
+
   - alert: MasterMemoryUsage
     expr: ((node_memory_MemTotal{role="master"} - node_memory_MemAvailable{role="master"})
       / (node_memory_MemTotal{role="master"}) * 100) > 95
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: master
       severity: critical
     annotations:
@@ -528,12 +578,12 @@ groups:
         above 95% (current value is: {{ $value }})'
       summary: High memory usage detected
 {% endraw %}
+
   - alert: InfraCPUUsage
     expr: ((1 - (avg(irate(node_cpu{mode="idle",role="infra"}[5m])) BY (instance)))
       * 100) > 85
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: infra
       severity: critical
     annotations:
@@ -542,12 +592,12 @@ groups:
         85% (current value is: {{ $value }})'
       summary: High CPU usage detected
 {% endraw %}
+
   - alert: InfraLoadAverage
     expr: node_load15{role="infra"} / ON(server_name) GROUP_RIGHT() machine_cpu_cores{role="infra"}
       > 2
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: infra
       severity: critical
     annotations:
@@ -556,12 +606,12 @@ groups:
         is high'
       summary: High load average detected
 {% endraw %}
+
   - alert: InfraMemoryUsage
     expr: ((node_memory_MemTotal{role="infra"} - node_memory_MemAvailable{role="infra"})
       / (node_memory_MemTotal{role="infra"}) * 100) > 95
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: infra
       severity: critical
     annotations:
@@ -570,12 +620,12 @@ groups:
         above 95% (current value is: {{ $value }})'
       summary: High memory usage detected
 {% endraw %}
+
   - alert: NodeAppCPUUsage
     expr: ((1 - (avg(irate(node_cpu{mode="idle",role="app"}[5m])) BY (instance)))
       * 100) > 85
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: app
       severity: critical
     annotations:
@@ -584,12 +634,12 @@ groups:
         95% (current value is: {{ $value }})'
       summary: High CPU usage detected
 {% endraw %}
+
   - alert: NodeAppLoadAverage
     expr: node_load15{role="app"} / ON(server_name) GROUP_RIGHT() machine_cpu_cores{role="app"}
       > 5
     for: 12h
     labels:
-      cluster: {{ cluster_name }}
       service: app
       severity: critical
     annotations:
@@ -598,12 +648,12 @@ groups:
         is high'
       summary: High load average detected
 {% endraw %}
+
   - alert: NodeAppMemoryUsage
     expr: ((node_memory_MemTotal{role="app"} - node_memory_MemAvailable{role="app"})
       / (node_memory_MemTotal{role="app"}) * 100) > 95
     for: 10m
     labels:
-      cluster: {{ cluster_name }}
       service: app
       severity: critical
     annotations:
@@ -612,6 +662,7 @@ groups:
         above 95% (current value is: {{ $value }})'
       summary: High memory usage detected
 {% endraw %}
+
   - alert: TooManySystemOOM
     expr: irate(heptio_eventrouter_warnings_total{involved_object_kind="Node",reason="SystemOOM"}[10m])
       * 100 > 5
@@ -624,13 +675,14 @@ groups:
       description: To many containers are dying by OOM on {{$labels.source}}
       summary: Too many dead containers
 {% endraw %}
+
   - record: disk:usage_percent
     expr: container_fs_usage_bytes{device=~"^/dev/(xvd[a-z]+|sd[a-z]+)[1-9]*$"} / container_fs_limit_bytes{device=~"^/dev/(xvd[a-z]+|sd[a-z]+)[1-9]*$"} * 100
+
   - alert: NodeDiskUsage
     expr: predict_linear(disk:usage_percent[1h], 60 * 60 * 24 * 8) > 100
     for: 24h
     labels:
-      cluster: {{ cluster_name }}
       service: node
       severity: warning
     annotations:
@@ -638,62 +690,59 @@ groups:
       description: 'Disk {{$label.device}} on {{$label.instance}} will be full in 7 days'
       summary: High disk usage
 {% endraw %}
+
   - record: pvc:usage_percent
     expr: kubelet_volume_stats_used_bytes{namespace=~"default|getup|kube-(public|system)|logging|management-infra|openshift|openshift-(grafana|infra|metrics|node|web-console)"}/kubelet_volume_stats_capacity_bytes{namespace=~"default|getup|kube-(public|system)|logging|management-infra|openshift|openshift-(grafana|infra|metrics|node|web-console)"} * 100
+
   - alert: PVCDiskUsage
     expr: predict_linear(pvc:usage_percent[1h], 60 * 60 * 24 * 8) > 100
     for: 24h
     labels:
       severity: critical
-      cluster: {{ cluster_name }}
     annotations:
 {% raw %}
-      description: PVC {{$labels.persistentvolumeclaim}} in {{$labels.namespace}} will be full in 7 days - {{ cluster_name }}
+      description: PVC {{$labels.persistentvolumeclaim}} in {{$labels.namespace}} will be full in 7 days
       summary: PVCDiskUsage
 {% endraw %}
+
   - alert: FailedBackup
     expr: heptio_eventrouter_warnings_current{involved_object_kind=~".*Backup"} > 1
     for: 1m
     labels:
-      cluster: {{ cluster_name }}
       service: backup
       severity: warning
     annotations:
 {% raw %}
-      description: {{ cluster_name }} - 'Some backup job(s) of kind {{$label.involved_object_kind}} has failed'
-      summary: Backup has failed - {{ cluster_name }}
+      description: Some backup job(s) of kind {{$label.involved_object_kind}} has failed
+      summary: Backup has failed
 {% endraw %}
 
   - alert: BackupNotActive
     expr: absent(heptio_eventrouter_normal_current{involved_object_kind=~".*Backup"}) > 0
     for: 24h
     labels:
-      cluster: {{ cluster_name }}
       service: backup
       severity: warning
     annotations:
-      description: {{ cluster_name }} - Looks like backup jobs aren't running at all.
-      summary: Backup not active - {{ cluster_name }}
+      description: Looks like backup jobs aren't running at all.
+      summary: Backup not active
 
   - alert: FailedGetupJobs
     expr: sum(irate(heptio_eventrouter_warnings_total{involved_object_namespace="getup", involved_object_kind="Job", reason="BackoffLimitExceeded"}[1h])) > 0
     for: 1h
     labels:
-      cluster: {{ cluster_name }}
       service: jobs
       severity: warning
     annotations:
-      description: {{ cluster_name }} - Some getup jobs are failing to execute
-      summary: {{ cluster_name }} - Failed jobs.
+      description: Some getup jobs are failing to execute
+      summary: Failed jobs.
 
   - alert: CertificateAlert
     expr: heptio_eventrouter_warnings_current{involved_object_kind="CertificateChecker", involved_object_namespace="getup"}
     for: 5m
     labels:
-      cluster: {{ cluster_name }}
       service: jobs
       severity: warning
     annotations:
       description: {{ cluster_name }} - One or more certificates are about to expire. Please see logs from related CronJob.
       summary: {{ cluster_name }} - Certificates will expire.
-
