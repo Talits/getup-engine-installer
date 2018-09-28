@@ -1250,6 +1250,7 @@ infra_count=${INFRA_COUNT}
 getupcloud_namespace_node_selector="role=infra"
 
 getupcloud_cluster_name="${NAME}"
+getupcloud_cluster_region="${CLUSTER_REGION}"
 getupcloud_cluster_zone="${CLUSTER_ZONE}"
 getupcloud_apps_zone="${APPS_ZONE}"
 getupcloud_portal_endpoint="${PORTAL_ENDPOINT}"

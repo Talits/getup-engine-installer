@@ -95,6 +95,7 @@
     stats_password: "{{ router_svc['metadata']['annotations']['prometheus.openshift.io/password'] | default('') }}"
     cluster_zone: "{{ getupcloud_cluster_zone }}"
     cluster_name: "{{ getupcloud_cluster_name }}"
+    cluster_region: "{{ getupcloud_cluster_region }}"
   changed_when: no
 
 - template:
@@ -105,6 +106,7 @@
     stats_password: "{{ router_svc['metadata']['annotations']['prometheus.openshift.io/password'] | default('') }}"
     cluster_zone: "{{ getupcloud_cluster_zone }}"
     cluster_name: "{{ getupcloud_cluster_name }}"
+    cluster_region: "{{ getupcloud_cluster_region }}"
   changed_when: no
 
 - name: Replace prometheus configmap
