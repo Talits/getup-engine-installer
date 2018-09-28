@@ -685,3 +685,15 @@ groups:
     annotations:
       description: {{ cluster_name }} - Some getup jobs are failing to execute
       summary: {{ cluster_name }} - Failed jobs.
+
+  - alert: CertificateAlert
+    expr: heptio_eventrouter_warnings_current{involved_object_kind="CertificateChecker", involved_object_namespace="getup"}
+    for: 5m
+    labels:
+      cluster: {{ cluster_name }}
+      service: jobs
+      severity: warning
+    annotations:
+      description: {{ cluster_name }} - One or more certificates are about to expire. Please see logs from related CronJob.
+      summary: {{ cluster_name }} - Certificates will expire.
+
