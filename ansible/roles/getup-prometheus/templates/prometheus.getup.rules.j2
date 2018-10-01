@@ -738,7 +738,7 @@ groups:
       summary: Failed jobs.
 
   - alert: CertificateAlert
-    expr: heptio_eventrouter_warnings_current{involved_object_kind="CertificateChecker", involved_object_namespace="getup"}
+    expr: sum(irate(heptio_eventrouter_warnings_total{involved_object_kind="CertificateChecker",involved_object_namespace="getup"}[1h])) > 0
     for: 5m
     labels:
       service: jobs
