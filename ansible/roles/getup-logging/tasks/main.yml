@@ -57,8 +57,6 @@
       - "secret.yaml"
     delete_after: true
 
-    
-
 - name: Replace ConfigMap
   oc_configmap:
     state: present
@@ -86,7 +84,3 @@
     files:
       - "logging-fluentd.yaml"
     delete_after: true
-
-
-
-   
