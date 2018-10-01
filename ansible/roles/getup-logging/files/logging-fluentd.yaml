@@ -2,7 +2,7 @@ apiVersion: extensions/v1beta1
 kind: DaemonSet
 metadata:
   creationTimestamp: null
-  generation: 6
+  generation: 1
   labels:
     component: fluentd
     logging-infra: fluentd
@@ -175,8 +175,14 @@ spec:
           path: /var/lib/fluentd
           type: ""
         name: filebufferstorage
-  templateGeneration: 6
+  templateGeneration: 1
   updateStrategy:
     rollingUpdate:
       maxUnavailable: 1
     type: RollingUpdate
+
+
+
+
+       
+        
