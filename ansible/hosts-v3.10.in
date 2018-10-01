@@ -1358,6 +1358,13 @@ getupcloud_backup_storage_azure_account_name="${GETUPCLOUD_BACKUP_STORAGE_AZURE_
 getupcloud_backup_storage_azure_account_key="${GETUPCLOUD_BACKUP_STORAGE_AZURE_ACCOUNT_KEY}"
 getupcloud_backup_storage_azure_container="${GETUPCLOUD_BACKUP_STORAGE_AZURE_CONTAINER}"
 
+# Install getupcloud logging stack
+getupcloud_logging_storage_kind="${GETUPCLOUD_LOGGING_STORAGE_KIND}"
+getupcloud_logging_storage_s3_accesskey="${GETUPCLOUD_LOGGING_STORAGE_S3_ACCESSKEY}"
+getupcloud_logging_storage_s3_secretkey="${GETUPCLOUD_LOGGING_STORAGE_S3_SECRETKEY}"
+getupcloud_logging_storage_s3_bucket="${GETUPCLOUD_LOGGING_STORAGE_S3_BUCKET}"
+getupcloud_logging_storage_s3_region="${GETUPCLOUD_LOGGING_STORAGE_S3_REGION}"
+
 # Install getupcloud event observer
 getupcloud_install_observer=${GETUPCLOUD_OBSERVER_INSTALL}
 
