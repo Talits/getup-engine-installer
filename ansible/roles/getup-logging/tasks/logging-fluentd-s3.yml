@@ -1,0 +1,50 @@
+
+- name: Include variables
+  include_vars: /usr/share/ansible/openshift-ansible/roles/openshift_logging_fluentd/defaults/main.yml
+
+- name: Add file fluentd
+  template:
+    src: fluent.conf.j2
+    dest: fluent.conf
+  vars:
+    deploy_type: "{{ openshift_logging_fluentd_deployment_type }}"
+
+- name: Add file secure-forward
+  copy:
+    src: secure-forward.conf
+    dest: secure-forward.conf
+
+- name: Add file throttle
+  copy:
+    src: throttle-config.yaml
+    dest: throttle-config.yaml
+
+- name: Create Secret
+  oc_secret:
+    state: present
+    name: s3-credential
+    namespace: "{{ openshift_logging_namespace }}"
+    contents:
+    - path: LOGGING_USERNAME
+      data: "{{ getupcloud_logging_storage_s3_accesskey | b64encode }}"
+    - path: LOGGING_PASSWORD
+      data: "{{ getupcloud_logging_storage_s3_secretkey | b64encode}}"
+
+- name: Replace ConfigMap
+  oc_configmap:
+    state: present
+    name: logging-fluentd
+    namespace: "{{ openshift_logging_namespace }}"
+    from_file:
+      fluent.conf: fluent.conf
+      secure-forward.conf: secure-forward.conf
+      throttle-config.yaml: throttle-config.yaml
+
+- name: Fluentd | Set Secret
+  shell: >
+    {{ oc }} env --from=secret/s3-credential ds logging-fluentd
+  ignore_errors: yes
+
+- name: Fluentd | Set Image
+  shell: > 
+    {{ oc }} set image ds logging-fluentd *=docker.io/getupcloud/aggregating-logging:v1.0 -n{{ openshift_logging_namespace }}
