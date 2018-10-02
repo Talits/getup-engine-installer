@@ -20,3 +20,5 @@
 - name: Include tasks s3 conf
   import_tasks: logging-fluentd-s3.yml
   when: getupcloud_api_aws_access_key_id is defined
+
+

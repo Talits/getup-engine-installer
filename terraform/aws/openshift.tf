@@ -282,6 +282,10 @@ resource "aws_instance" "masters" {
     source_dest_check           = true
     disable_api_termination     = "${var.aws_disable_api_termination}"
 
+    lifecycle {
+        ignore_changes = [ "ebs_block_device", "tags", "volume_tags" ]
+    }
+
     tags = {
         ResourceGroup = "${var.aws_resource_group}"
         Name          = "${var.prefix}master-${count.index}"

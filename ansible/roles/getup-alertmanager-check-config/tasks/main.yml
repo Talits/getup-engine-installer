@@ -1,0 +1,38 @@
+- name: AlertManager-Check | Add Template
+  copy:
+    src: alertmanager-check-config.yaml.j2
+    dest: alertmanager-check-config.yaml
+
+- name: AlertManager-Check | Create Deployment
+  oc_obj:
+    name: alertmanager-check-config
+    state: present
+    namespace: "{{ openshift_prometheus_namespace }}"
+    kind: DeploymentConfig
+    files:
+      - alertmanager-check-config.yaml
+    delete_after: yes
+  ignore_errors: yes
+
+- name: AlertManager-Check | Create Service
+  oc_service:
+    namespace: "{{ openshift_prometheus_namespace }}"
+    name: alertmanager-check-config
+    ports:
+    - name: 8080-tcp
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: alertmanager-check-config 
+    session_affinity: None
+    service_type: ClusterIP
+
+- name: AlertManager-Check | Expose URL
+  oc_route:
+    state: present
+    name: alertmanager-check-config
+    namespace: "{{ openshift_prometheus_namespace }}"
+    host: "alertmanager-check-config.{{ getupcloud_apps_zone }}"
+    service_name: alertmanager-check-config
+

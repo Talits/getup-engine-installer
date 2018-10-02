@@ -33,7 +33,7 @@ find $state_dir -path $state_dir/.terraform -prune -o -type f -not -name '*.enc'
     if [ $ret -eq 0 ]; then
         [ -e "$file" -a -e "${file}.enc" ] || continue
         [ "$file" -ot "${file}.enc" ] || continue
-        rm -f "${file}"
+        [ ${0##*/} == update-state ] || rm -f "${file}"
     fi
 done
 echo >&2

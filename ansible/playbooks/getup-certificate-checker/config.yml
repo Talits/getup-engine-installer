@@ -1,0 +1,17 @@
+---
+- name: Setup
+  hosts: localhost
+  connection: local
+  become: no
+  gather_facts: no
+  tags:
+    - always
+  roles:
+    - init
+
+- name: Set cron
+  hosts: oo_first_master
+  gather_facts: no
+  tasks:
+    - include_role:
+        name: getup-certificate-checker

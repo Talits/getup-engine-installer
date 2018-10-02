@@ -62,6 +62,7 @@ getupcloud_backup_storage_s3_bucket: ""
 getupcloud_backup_gce_zone: "southamerica-east1-a"
 getupcloud_backup_gce_service_account_json: "/state/gce-service-account.json"
 
+# Api
 getupcloud_api_template_name_prefix: "getup-api"
 getupcloud_api_template_selector: "provider=getupcloud,component=getup-api"
 getupcloud_database_managed_hostname: ""
@@ -94,6 +95,7 @@ getupcloud_observer_template_name: "observer"
 getupcloud_observer_message_frequency: 50
 
 getupcloud_pager_duty_service_key: ""
+getupcloud_pager_duty_check_config: ""
 getupcloud_slack_token: ""
 getupcloud_slack_operations_webhook: ""
 getupcloud_slack_operations_channel: "#operations"
@@ -121,3 +123,8 @@ openshift_grafana_cpu_limit: null
 openshift_logging_namespace: 'logging'
 openshift_logging_curator_default_days: 30
 openshift_logging_curator_default_days_ops: 14
+getupcloud_logging_storage_kind: ""
+getupcloud_logging_storage_s3_accesskey: ""
+getupcloud_logging_storage_s3_secretkey: ""
+getupcloud_logging_storage_s3_bucket: ""
+getupcloud_logging_storage_s3_region: ""

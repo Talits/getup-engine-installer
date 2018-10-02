@@ -1,11 +1,34 @@
 #!/usr/bin/env bash
 
+STATE_DIR=${1:-$STATE_DIR}
+
 set -eu
 
+INCLUDES=(
+    certs/
+    letsencrypt/
+    overwrite/
+    console-urls.json.enc
+    getupengine.env.enc
+    id_rsa.enc
+    terraform.tfstate.enc
+)
+
+function spread()
+{
+  local p="$1"
+  shift
+  local IFS=","
+  eval "echo $(echo "$p\ {$*}")"
+}
+
 trap "echo WARNING: state not sync to backend" ERR
+source setup-state-backend
 
-echo Saving state dir $STATE_DIR to ${PROVIDER^^} $STATE_BACKEND
+if [ -v STATE_BACKEND ]; then
+    echo Saving state from $STATE_DIR to $STATE_BACKEND/state/${CLUSTER_ID}/
 
-if [ $PROVIDER == aws -a -n "${STATE_BACKEND}" ]; then
-    aws s3 sync --exclude '*.terraform/*' $STATE_DIR $STATE_BACKEND/state/
+    cd $STATE_DIR
+    FULL_INCLUDES=( $(for file in ${INCLUDES[*]}; do find "$file" -type f -name '*.enc'; done 2>/dev/null) )
+    aws_state_backend s3 sync --exclude '*' $(spread --include ${FULL_INCLUDES[*]}) . $STATE_BACKEND/state/${CLUSTER_ID}/
 fi
