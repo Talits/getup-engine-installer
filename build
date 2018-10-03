@@ -14,8 +14,8 @@ else
     export RELEASE=devel
 fi
 
-image=getup-engine${IMAGE_SUFFIX}:${1:-v3.10}
-dockerfile=Dockerfile-${1:-v3.10}
+image=getup-engine${IMAGE_SUFFIX}:${1:-v3.9}
+dockerfile=Dockerfile-${1:-v3.9}
 
 echo "---> Building $image from $dockerfile"
 

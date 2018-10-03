@@ -95,6 +95,7 @@
     stats_password: "{{ router_svc['metadata']['annotations']['prometheus.openshift.io/password'] | default('') }}"
     cluster_zone: "{{ getupcloud_cluster_zone }}"
     cluster_name: "{{ getupcloud_cluster_name }}"
+    cluster_region: "{{ getupcloud_cluster_region }}"
   changed_when: no
 
 - template:
@@ -105,6 +106,7 @@
     stats_password: "{{ router_svc['metadata']['annotations']['prometheus.openshift.io/password'] | default('') }}"
     cluster_zone: "{{ getupcloud_cluster_zone }}"
     cluster_name: "{{ getupcloud_cluster_name }}"
+    cluster_region: "{{ getupcloud_cluster_region }}"
   changed_when: no
 
 - name: Replace prometheus configmap
@@ -124,8 +126,6 @@
     slack_operations_webhook: "{{ getupcloud_slack_operations_webhook }}"
     slack_operations_channel: "{{ getupcloud_slack_operations_channel }}"
   changed_when: no
-  when:
-    - getupcloud_slack_operations_webhook is defined and getupcloud_slack_operations_webhook != ""
 
 - name: Replace prometheus-alerts configmap
   oc_configmap:
@@ -134,8 +134,6 @@
     namespace: "{{ openshift_prometheus_namespace }}"
     from_file:
       alertmanager.yml: "{{ tempdir }}/alertmanager.yml"
-  when:
-    - getupcloud_slack_operations_webhook is defined and getupcloud_slack_operations_webhook != ""
 
 # This is being done by dockerfile until we find a better solution
 #- name: Config prometheus to listen on all interfaces
