@@ -19,4 +19,4 @@
 
 - name: Include S3 fluentd config
   import_tasks: logging-fluentd-s3.yml
-  when: openshift_cloudprovider_kind is "aws"
+  when: openshift_cloudprovider_kind == "aws"
