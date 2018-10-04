@@ -1,5 +1,5 @@
 ---
-- name: Create curator config
+- name: Copy curator config
   template:
     src: curator.yaml.j2
     dest: curator.yaml
@@ -12,13 +12,11 @@
     from_file:
       config.yaml: "curator.yaml"
 
-- name: Rollout curator deployment
+- name: Rollout curator deployment (best effort)
   shell: >
     {{ oc }} -n {{ openshift_logging_namespace }}
     rollout latest dc/logging-curator
 
-- name: Include tasks s3 conf
+- name: Include S3 fluentd config
   import_tasks: logging-fluentd-s3.yml
-  when: getupcloud_api_aws_access_key_id is defined
-
-
+  when: openshift_cloudprovider_kind is "aws"
