@@ -11,13 +11,6 @@
 
 - name: Configure Logging
   hosts: oo_first_master
-  pre_tasks:
-    - name: Change Environment shared_key
-      replace:
-        path: "/usr/share/ansible/openshift-ansible/roles/openshift_logging_fluentd/defaults/main.yml"
-        regexp: 'random_word\([0-9]{1,3}\)'
-        replace: 'b64encode'
-      delegate_to: localhost
   tags:
     - getup-logging
   tasks:
