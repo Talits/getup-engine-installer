@@ -1197,7 +1197,6 @@ openshift_enable_unsupported_configurations=false
 
 openshift_disable_check=disk_availability,memory_availability,package_version
 openshift_clusterid="${CLUSTER_ID}"
-openshift_cloudprovider_kind="${PROVIDER}"
 
 # Prometheus
 openshift_prometheus_node_selector={'role': 'infra'}
