@@ -1,0 +1,24 @@
+#!/bin/bash
+
+sourceDir="$1"
+targetDir="$2"
+
+if [ ! -d "$sourceDir" -o -z "$targetDir" ]; then
+    echo "Usage: $0 [SOURCE DIR] [TARGET DIR]"
+    exit 1
+fi
+
+if [ -e "$targetDir" -a ! -d $targetDir"" ]; then
+    echo "File exists: $targetDir"
+    exit 1
+fi
+
+sourceFiles=( $(find "$sourceDir" -type f) )
+
+
+for source in ${sourceFiles[@]}; do
+    output=${targetDir}/${source:${#sourceDir}}
+    echo "$source -> $output"
+    mkdir -p "${output%/*}"
+    envsubst < "$source" >$output
+done

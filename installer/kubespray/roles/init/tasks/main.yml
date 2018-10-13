@@ -1,0 +1,6 @@
+---
+- name: Create group oo_first_master
+  add_host:
+    name: "{{ groups['kube-master'][0] }}"
+    groups: oo_first_master
+  when: groups.oo_first_master is not defined

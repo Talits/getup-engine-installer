@@ -1,0 +1,10 @@
+---
+- template:
+    src: "templates/storageclass.yml.j2"
+    dest: "storageclass.yml"
+
+- name: Create default storage class
+  k8s:
+    state: present
+    src: "storageclass.yml"
+   

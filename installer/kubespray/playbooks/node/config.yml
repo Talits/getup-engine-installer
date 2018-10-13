@@ -1,0 +1,43 @@
+---
+- name: Setup
+  hosts: localhost
+  connection: local
+  become: no
+  gather_facts: no
+  tags:
+    - always
+  roles:
+    - init
+
+- name: Setup all nodes
+  hosts: all
+  become: yes
+  tags:
+    - node
+  roles:
+    - node-base
+    - yum-cron
+
+- name: Setup master nodes
+  hosts: kube-master
+  become: yes
+  tags:
+    - master
+  roles:
+    - node-master
+
+- name: Setup app nodes
+  hosts: kube-node
+  become: yes
+  tags:
+    - app
+  roles:
+    - node-app
+
+- name: Setup infra nodes
+  hosts: kube-node
+  become: yes
+  tags:
+    - infra
+  roles:
+    - { role: node-infra, when: "node_labels['role'] == 'infra'" }

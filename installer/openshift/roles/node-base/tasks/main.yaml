@@ -1,0 +1,142 @@
+---
+# Wating fo lvol to support LVM thinpool
+# https://github.com/ansible/ansible/pull/19312
+#
+#- parted:
+#    device: {{ local_quota_dev }}
+#    number: 1
+#    state: absent
+#
+#- parted:
+#    device: {{ lvm_dev }}
+#    number: 2
+#    state: absent
+#
+#- parted:
+#    device: {{ local_quota_dev }}
+#    number: 1
+#    state: present
+#    part_end: {{ local_quota_part_size }}
+#
+#- parted:
+#    device: {{ local_quota_dev }}
+#    number: 2
+#    flags: [ lvm ]
+#    state: present
+#    part_start: {{ local_quota_part_size }}
+#
+#- filesystem:
+#    fstype: xfs
+#    dev: {{ local_quota_dev }}1
+
+#- name: Update iptables [prometheus node-exporter]
+#  tags:
+#    - nodes
+#    - post-install
+#  iptables:
+#    state: present
+#    chain: OS_FIREWALL_ALLOW
+#    jump: ACCEPT
+#    protocol: tcp
+#    ip_version: ipv4
+#    source: 0/0
+#    destination: 0/0
+#    destination_port: 9100
+
+- name: Increase AIO FDs total
+  sysctl:
+    name: fs.aio-max-nr
+    value: 200000
+    sysctl_set: yes
+  tags:
+  - pre-install
+
+- name: Create Azure cloudprovider config
+  tags:
+    - pre-install
+  block:
+  - name: Create Azure cloud provider config dir
+    file:
+      state: directory
+      path: /etc/origin/cloudprovider/
+      owner: root
+      group: root
+      mode: 0760
+
+  - name: Create Azure cloud provider config file
+    template:
+      src: azure.conf.j2
+      dest: /etc/origin/cloudprovider/azure.conf
+      owner: root
+      group: root
+      mode: 0640
+  when: openshift_cloudprovider_kind | default('') == 'azure'
+
+  #- name: Update cloudprovider node-config for Azure
+  #  yedit:
+  #    src: /etc/origin/node/node-config.yaml
+  #    key: kubeletArguments.cloud-provider
+  #    value:
+  #    - 'azure'
+  #
+  #- name: Update cloudprovider node-config for Azure
+  #  yedit:
+  #    src: /etc/origin/node/node-config.yaml
+  #    key: kubeletArguments.cloud-config
+  #    value:
+  #    - '/etc/azure/azure.conf'
+  #
+  #- name: Restart services
+  #  shell: echo
+  #  notify:
+  #  - restart node
+
+#- name: Copy self signed CA
+#  copy:
+#    src: "{{ self_signed_ca_cert_file }}"
+#    dest: "/etc/pki/ca-trust/source/anchors/{{ self_signed_ca_cert_file | basename }}"
+#    force: true
+#    owner: root
+#    group: root
+#    mode: 0660
+#  tags:
+#  - pre-install
+#  when: self_signed_ca_cert_file is defined and self_signed_ca_cert_file | default("") != ""
+#
+#- name: Update ca trust
+#  command: update-ca-trust
+#  tags:
+#  - pre-install
+#  when: self_signed_ca_cert_file is defined and self_signed_ca_cert_file | default("") != ""
+
+- name: Limit journald max disk usage
+  ini_file:
+    path: /etc/systemd/journald.conf
+    section: Journal
+    option: SystemMaxUse
+    value: "5G"
+    backup: yes
+
+- name: Limit journald total files
+  ini_file:
+    path: /etc/systemd/journald.conf
+    section: Journal
+    option: SystemMaxFiles
+    value: 200
+    backup: yes
+
+- name: Make sure journald restarts
+  systemd:
+    state: restarted
+    name: systemd-journald
+
+- shell: "pip --version"
+  ignore_errors: yes
+  register: pip
+
+- name: Install pip
+  shell: "easy_install pip"
+  when: pip.rc != 0
+
+- name: Update pip
+  shell: "pip install -U pip"

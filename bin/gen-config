@@ -273,7 +273,7 @@ if ask 'Install Web Console?' true; then
     fi
 
     if ask 'Customize console links?' false; then
-        cp -fv ansible/roles/getup-console/files/urls.json $stateDir/
+        cp -fv installer/openshift/roles/getup-console/files/urls.json $stateDir/
         $EDITOR $stateDir/urls.json
         ex GETUPCLOUD_CONSOLE_URLS_PATH=$stateDir/urls.json
     else

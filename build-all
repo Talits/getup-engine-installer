@@ -8,7 +8,7 @@ export NO_PULL=1
 git pull
 sleep 2
 
-releases="v3.9 v3.10"
+releases="v3.9 v3.10 v1.12"
 latest=${releases##* }
 for release in $releases; do
     (

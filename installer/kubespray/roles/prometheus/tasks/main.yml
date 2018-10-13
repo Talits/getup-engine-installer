@@ -1,0 +1,32 @@
+---
+- name: Create prometheus namespace
+  k8s:
+    name: "{{ prometheus_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- template:
+    src: "templates/prometheus-operator.yml.j2"
+    dest: "prometheus-operator.yml"
+
+- name: Check if prometheus-operator is already installed
+  shell: "{{bin_dir}}/helm ls prometheus-operator -q | wc -l"
+  register: prometheus_operator
+
+- set_fact:
+    has_prometheus_operator: "{{ prometheus_operator.stdout | bool }}"
+
+- name: Install prometheus chart
+  shell: "{{ bin_dir }}/helm install --name prometheus-operator --namespace {{ prometheus_namespace }} stable/prometheus-operator --values prometheus-operator.yml"
+  when: not has_prometheus_operator
+
+- copy:
+    src: "files/prometheus-rules-getup.yaml"
+    dest: "prometheus-rules-getup.yaml"
+
+- shell: "{{ bin_dir }}/kubectl replace -n {{ prometheus_namespace }} -f prometheus-rules-getup.yaml"
+
+- file:
+    state: absent
+    path: prometheus-rules-getup.yaml

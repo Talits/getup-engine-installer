@@ -1,0 +1,12 @@
+---
+- name: restart master api
+  systemd:
+    name: "origin-master-api"
+    state: restarted
+
+- name: restart master controllers
+  command: "systemctl restart origin-master-controllers"
+  retries: 3
+  delay: 5
+  register: result
+  until: result.rc == 0

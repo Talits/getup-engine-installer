@@ -8,7 +8,8 @@
         "high_perf_disk_iops": "{{env `HIGH_PERF_DISK_IOPS`}}",
         "ami_name_master":     "GetupEngine Master",
         "ami_name_infra":      "GetupEngine Infra",
-        "ami_name_app":        "GetupEngine App"
+        "ami_name_app":        "GetupEngine App",
+        "release":             "{{env `RELEASE`}}"
     },
 
     "builders": [

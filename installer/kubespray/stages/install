@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd /getup-engine/installer/kubespray/kubespray
+ansible-playbook $@ \
+    --become --become-user=root \
+    cluster.yml

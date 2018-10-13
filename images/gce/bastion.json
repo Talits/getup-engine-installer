@@ -2,7 +2,8 @@
     "variables": {
         "account_file": "{{env `GOOGLE_CREDENTIALS`}}",
         "project_id": "{{env `GOOGLE_PROJECT`}}",
-        "zone":     "{{env `GOOGLE_ZONE`}}"
+        "zone":     "{{env `GOOGLE_ZONE`}}",
+        "release":  "{{env `RELEASE`}}"
     },
 
     "builders": [
