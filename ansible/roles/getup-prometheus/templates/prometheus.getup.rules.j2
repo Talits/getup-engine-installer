@@ -663,6 +663,46 @@ groups:
       summary: High memory usage detected
 {% endraw %}
 
+  - alert: ClusterMemoryUsage
+    expr: cluster:memory_used:percent > 85
+    for: 1d
+    labels:
+      severity: info
+    annotations:
+{% raw %}
+      description: {{ cluster_name }} - Cluster Memory Usage is high
+      summary: {{ cluster_name }} - Memory Usage > 85%
+{% endraw %}
+  - alert: ClusterCPUUsage
+    expr: cluster:cpu_allocation:percent > 85
+    for: 1d
+    labels:
+      severity: info
+    annotations:
+{% raw %}
+      description: {{ cluster_name }} - Cluster CPU Usage is high
+      summary: {{ cluster_name }} - CPU Usage > 85%
+{% endraw %}
+  - alert: ClusterMemoryUsage
+    expr: cluster:memory_used:percent < 50
+    for: 1d
+    labels:
+      severity: info
+    annotations:
+{% raw %}
+      description: Cluster - {{ cluster_name }} Memory Usage is low
+      summary: Cluster - {{ cluster_name }} Memory Usage < 50%
+{% endraw %}  
+  - alert: ClusterCPUUsage
+    expr: cluster:cpu_allocation:percent < 50
+    for: 1d
+    labels:
+      severity: info
+    annotations:
+{% raw %}
+      description: Cluster - {{ cluster_name }} - CPU Usage is low
+      summary: Cluster - {{ cluster_name }} - CPU Usage < 50%
+{% endraw %}
   - alert: TooManySystemOOM
     expr: irate(heptio_eventrouter_warnings_total{involved_object_kind="Node",reason="SystemOOM"}[10m])
       * 100 > 5
