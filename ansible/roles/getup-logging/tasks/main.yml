@@ -1,5 +1,5 @@
 ---
-- name: Create curator config
+- name: Copy curator config
   template:
     src: curator.yaml.j2
     dest: curator.yaml
@@ -12,69 +12,11 @@
     from_file:
       config.yaml: "curator.yaml"
 
-- name: Rollout curator deployment
+- name: Rollout curator deployment (best effort)
   shell: >
     {{ oc }} -n {{ openshift_logging_namespace }}
     rollout latest dc/logging-curator
 
-- name: Add file fluentd
-  copy:
-    src: fluent.conf
-    dest: fluent.conf
-
-- name: Add file fluentd
-  copy:
-    src:  logging-fluentd.yaml
-    dest: logging-fluentd.yaml
-
-- name: Add file secure
-  copy:
-    src: secure-forward.conf
-    dest: secure-forward.conf
-
-- name: Add file throttle
-  copy:
-    src: throttle-config.yaml
-    dest: throttle-config.yaml
-
-- name: Add file secret
-  template:
-    src: secret.yaml.j2
-    dest: secret.yaml
-
-- name: Create Secret
-  oc_obj:
-    state: present
-    name: s3-credential
-    namespace: "{{ openshift_logging_namespace }}"
-    kind: secret
-    files:
-      - "secret.yaml"
-    delete_after: true
-
-- name: Replace ConfigMap
-  oc_configmap:
-    state: present
-    name: logging-fluentd
-    namespace: "{{ openshift_logging_namespace }}"
-    from_file:
-      fluent.conf: fluent.conf
-      secure-forward.conf: secure-forward.conf
-      throttle-config.yaml: throttle-config.yaml
-
-- name: Delete Older DS Fluentd
-  oc_obj:
-    state: absent
-    name: logging-fluentd
-    namespace: "{{ openshift_logging_namespace }}"
-    kind: daemonset
-
-- name: Create New DS Fluentd
-  oc_obj:
-    state: present
-    name: logging-fluentd
-    namespace: "{{ openshift_logging_namespace }}"
-    kind: daemonset
-    files:
-      - "logging-fluentd.yaml"
-    delete_after: true
+- name: Include S3 fluentd config
+  import_tasks: logging-fluentd-s3.yml
+  when: openshift_cloudprovider_kind == "aws"

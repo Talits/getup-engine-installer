@@ -1,5 +1,6 @@
 ---
 oc: "/bin/oc"
+getupcloud_openshift_roles: /usr/share/ansible/openshift-ansible/roles
 getupcloud_vendor_name: "getupcloud"
 getupcloud_vendor_title: "GetupCloud"
 getupcloud_vendor_namespace: "getup.io"
