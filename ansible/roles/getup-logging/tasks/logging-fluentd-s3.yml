@@ -1,0 +1,64 @@
+- name: Include variables
+  include_vars: "{{getupcloud_openshift_roles }}/openshift_logging_fluentd/defaults/main.yml"
+
+- name: Add config
+  lineinfile:
+    path: "{{getupcloud_openshift_roles }}/openshift_logging_fluentd/templates/2.x/fluent.conf.j2"
+    line: '@include configs.d/user/s3.conf'
+  delegate_to: localhost
+
+- name: Add file fluentd
+  template:
+    src:  "{{getupcloud_openshift_roles }}/openshift_logging_fluentd/templates/2.x/fluent.conf.j2"
+    dest: fluent.conf
+  vars:
+    deploy_type: "{{ openshift_logging_fluentd_deployment_type }}"
+
+- name: Add file to config map
+  copy:
+    src: "{{ item }}"
+    dest: "{{ item }}"
+  with_items:
+  - secure-forward.conf
+  - throttle-config.yaml
+  - s3.conf
+
+- name: Create Secret
+  oc_secret:
+    state: present
+    name: s3-credential
+    namespace: "{{ openshift_logging_namespace }}"
+    contents:
+    - path: LOGGING_USERNAME
+      data: "{{ getupcloud_logging_storage_s3_accesskey | b64encode }}"
+    - path: LOGGING_PASSWORD
+      data: "{{ getupcloud_logging_storage_s3_secretkey | b64encode}}"
+
+- name: Replace ConfigMap
+  oc_configmap:
+    state: present
+    name: logging-fluentd
+    namespace: "{{ openshift_logging_namespace }}"
+    from_file:
+      s3.conf: s3.conf
+      fluent.conf: fluent.conf
+      secure-forward.conf: secure-forward.conf
+      throttle-config.yaml: throttle-config.yaml
+      
+- name: Fluentd | Set Secret
+  shell: >
+    {{ oc }} env --from=secret/s3-credential ds logging-fluentd
+  ignore_errors: yes
+
+- name: Fluentd | Set Image
+  shell: > 
+    {{ oc }} set image ds logging-fluentd *=docker.io/getupcloud/aggregating-logging:v1.0 -n{{ openshift_logging_namespace }}
+
+- name: Add file to config map
+  file:
+    state: absent
+    path: "{{ item }}"
+  with_items:
+  - secure-forward.conf
+  - throttle-config.yaml
+  - s3.conf
