@@ -1,0 +1,41 @@
+- name: AWS | Create user in AWS
+  iam_user:
+    name: "{{ item }}"
+    state: present
+  with_items: 
+  - "{{config_user}}"
+
+  
+- name: AWS | Create Group in AWS
+  iam_group:
+    name: "{{ item.name }}"
+    state: present
+  with_items:
+  -  "{{ role }}"
+
+- name: AWS | Add Templates
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ item }}"
+  with_items:
+  - role.json
+  - config
+
+- name: AWS | Create Assume Role
+  iam_role:
+    name: K8SAssumeRole
+    assume_role_policy_document: "{{ lookup('file','role.json') }}"
+    state: present
+
+- name: AWS | Create Policy
+  iam_managed_policy:
+    policy_name: "{{ item.name }}"
+    policy: {"Version": "2012-10-17", "Statement": [{"Sid": "123","Effect": "Allow","Action": ["sts:AssumeRole"],"Resource": ["arn:aws:iam::{{id_aws}}:role/{{item.name}}"]}]}
+    state: present
+  with_items:
+  -  "{{ role }}"
+
+- name: AWS | Attach Policy to Groups
+  shell: "aws iam attach-group-policy --policy-arn arn:aws:iam::{{id_aws}}:policy/{{item.name}} --group-name {{ item.name}}"
+  with_items:
+  - "{{ role }}"
