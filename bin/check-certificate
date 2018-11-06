@@ -32,7 +32,7 @@ def to_pattern_list(domain):
 
 def get_domains(cert):
     for comp in cert.get_subject().get_components():
-        name, value = comp
+        name, value = list(map(str, comp))
         if name.upper() == 'CN':
             print('    ---> Found CN:', value, file=sys.stderr)
             re_value = to_pattern_list(value)
@@ -40,7 +40,7 @@ def get_domains(cert):
 
     for i in range(cert.get_extension_count()):
         ext = cert.get_extension(i)
-        if ext.get_short_name() == 'subjectAltName':
+        if ext.get_short_name() == b'subjectAltName':
             sa_names = str(ext).replace(',', '').split()
             for sa_name in sa_names:
                 print('    ---> Found SubjectAltName:', sa_name, file=sys.stderr)
@@ -61,8 +61,8 @@ def match(domain, domain_pattern):
 
 for domain_patttern in [ to_pattern_list(d) for d in get_domains(cert) ]:
     if match(domain, domain_patttern):
-        print(COLOR_GREEN, ' ✓ ---> Match', domain, 'with regex list', domain_patttern, COLOR_RESET, file=sys.stderr)
+        print(COLOR_GREEN, '   ---> Match', domain, 'with regex list', domain_patttern, COLOR_RESET, file=sys.stderr)
         sys.exit(0)
 
-print(COLOR_RED, ' ✗ ---> Certificate {} does not match {}'.format(certfile, domain), COLOR_RESET, file=sys.stderr)
+print(COLOR_RED, '   ---> Certificate {} does not match {}'.format(certfile, domain), COLOR_RESET, file=sys.stderr)
 sys.exit(2)
