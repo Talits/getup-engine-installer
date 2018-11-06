@@ -1,0 +1,9 @@
+- name: Main | Include Roles AWS
+  import_tasks: aws.yml
+  delegate_to: localhost
+  run_once: true
+  when: cloud_provider == "aws"
+   
+- name: Main | Include Roles K8S  
+  become: true
+  import_tasks: k8s.yml

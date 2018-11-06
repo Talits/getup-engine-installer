@@ -1,0 +1,46 @@
+- name: AWS | Add Templates
+  template:
+    src: "{{ item }}.j2"
+    dest: "{{ item }}"
+  with_items:
+  - configmap.yaml
+
+- name: K8S | Create Items K8S 
+  shell: "{{ bin_dir }}/kubectl create -f configmap.yaml -nkube-system"
+  when: inventory_hostname == groups['kube-master'][0]
+  ignore_errors: yes
+
+- name: K8S | Add configuration to apiserver
+  lineinfile:
+    path: "{{ path }}"
+    insertafter: '- apiserver'
+    line: '    - --authentication-token-webhook-config-file=/etc/kubernetes/aws-iam-authenticator/kubeconfig.yaml'
+
+- name: K8S | Restart Kubelet
+  service: name=kubelet state=restarted
+
+- name: "Go | Install dependencies"
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - curl
+    - gcc
+    - git
+    - findutils
+    - make
+    - rsync
+    - tar
+
+- name: "Go | Install"
+  yum:
+    name: golang
+    state: latest
+
+- name: K8S | Get Binary Authenticator
+  get_url: 
+    url: https://github.com/kubernetes-sigs/aws-iam-authenticator/releases/download/v{{auth_version}}/heptio-authenticator-aws_{{auth_version}}_linux_amd64
+    dest: /usr/local/bin/aws-iam-authenticator
+    mode: 0755
+
+  

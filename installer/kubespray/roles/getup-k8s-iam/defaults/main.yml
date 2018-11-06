@@ -1,0 +1,21 @@
+##########################
+#   AWS VARIABLES        #   
+##########################
+role:
+  - name: K8SView
+  - name: K8SAdmin
+  - name: K8SEdit
+cloud_provider: "aws"
+##########################
+#   Kubernetes VARIABLES #   
+##########################
+path: /etc/kubernetes/manifests/kube-apiserver.manifest
+bin_dir: /usr/local/bin
+certificate: ""
+api_server: ""
+config_user: [] #Set names
+##########################
+#   Extra VARIABLES      #   
+##########################
+auth_version: 0.3.0
+go_download_location: https://dl.google.com/go/go1.11.1.linux-amd64.tar.gz

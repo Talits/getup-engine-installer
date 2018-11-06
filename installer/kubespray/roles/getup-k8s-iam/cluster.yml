@@ -1,0 +1,17 @@
+---
+- hosts: kube-master[0]
+  any_errors_fatal: "{{ any_errors_fatal | default(true) }}"
+  vars_prompt:
+    - name: "config_role"
+      prompt: "Which Role do you want? -  K8SView, K8SAdmin or K8SEdit"
+      private: no
+    - name: "id_aws"
+      prompt: "Set Your AWS Account ID"
+      private: no
+  pre_tasks:
+    - assert:
+        that: id_aws | length == 12
+    - assert:
+        that: config_role | match('K8SView' or 'K8SAdmin' or 'K8SEdit')
+  roles:
+    - { role: iam-authenticator }
