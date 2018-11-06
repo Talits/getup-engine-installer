@@ -1,0 +1,8 @@
+#!/bin/bash
+
+cd /getup-engine/installer/kubespray
+ansible-playbook $@ \
+    --tags=pre-install,pre-install-${TARGET_RELEASE} \
+    --become --become-user=root \
+    playbooks/node/config.yml
+

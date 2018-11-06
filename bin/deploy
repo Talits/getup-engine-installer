@@ -5,11 +5,11 @@ set -eu
 cd /getup-engine
 
 echo "#MARK - `date` - Creating infastructure"
-./terraform/deploy -y
+./provider/deploy -y
 echo "#MARK - `date` -  Finished creating infastructure"
 
 echo "#MARK - `date` - Installing cluster"
-./ansible/deploy
+./installer/deploy
 echo "#MARK - `date` - Finished Installing cluster"
 
 ############################################################
@@ -23,7 +23,7 @@ echo "#MARK - `date` - Finished Installing cluster"
 #    id_rsa
 #    getupcloud.env
 #    terraform.tfstate
-#    terraform-out.env
+#    provider.env
 #)
 #
 #for file in ${ENV_FILES[*]}; do

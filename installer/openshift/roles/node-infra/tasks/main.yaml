@@ -1,0 +1,13 @@
+#---
+#- name: Update iptables [prometheus haproxy]
+#  iptables:
+#    state: present
+#    chain: OS_FIREWALL_ALLOW
+#    jump: ACCEPT
+#    protocol: tcp
+#    ip_version: ipv4
+#    source: 0/0
+#    destination: 0/0
+#    destination_port: 1936
+#  tags:
+#    - post-install

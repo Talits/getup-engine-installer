@@ -1,17 +1,17 @@
 #!/bin/bash
 
+export RELEASE=$(</getup-engine/release)
 echo
-echo Welcome to Getup Engine Installer $TARGET_OPENSHIFT_VERSION
+echo "Welcome to Getup Engine Installer ${FLAVOR^} $TARGET_VERSION ($RELEASE)"
 echo =======================================
+echo
 
 export STATE_DIR="${STATE_DIR:-/state}"
 export CERTS_DIR="${CERTS_DIR:-$STATE_DIR/certs}"
 export AZURE_CONFIG_DIR=$STATE_DIR/azure
 export ANSIBLE_LOG_PATH=$STATE_DIR/ansible.log
 
-set -a
-source ${STATE_DIR}/getupengine.env
-set +a
+source source-env
 
 if [ -z "${CLUSTER_ID}" ]; then
     echo "Please rename \$NAME to \$CLUSTER_ID and try again"
@@ -22,12 +22,12 @@ if [ -d "$STATE_DIR/overwrite" ]; then
     rsync -Irv /state/overwrite/ /getup-engine/
 fi
 
-if [ ! -d "/getup-engine/terraform/${PROVIDER}/" ]; then
-    echo Missing provider $PROVIDER
+if [ ! -d "/getup-engine/provider/${PROVIDER}/" ]; then
+    echo Missing provider folder /getup-engine/provider/${PROVIDER}/
     exit 1
 fi
 
-source setup-state-backend && setup_state_backend
+setup_state_backend
 
 ## from /usr/local/bin/entrypoint
 if ! whoami &>/dev/null; then
@@ -39,7 +39,7 @@ COLOR_RED=$(tput sgr0 && tput setaf 1 && tput bold)
 COLOR_GREEN=$(tput sgr0 && tput setaf 2 && tput bold)
 COLOR_RESET=$(tput sgr0)
 
-export PS1="[\[$COLOR_GREEN\]${CLUSTER_ID} \[$COLOR_RESET\]@ \[$COLOR_RED\]$TARGET_OPENSHIFT_VERSION\[$COLOR_RESET\]] \D{%x %X} \w \$ "
+export PS1="[\[$COLOR_GREEN\]${CLUSTER_ID} \[$COLOR_RESET\]@ \[$COLOR_RED\]$TARGET_VERSION\[$COLOR_RESET\]] \D{%x %X} \w \$ "
 
 grep -q 'source /getup-engine/bin/on.sh' ~/.bashrc 2>/dev/null || echo 'source /getup-engine/bin/on.sh' >> ~/.bashrc
 

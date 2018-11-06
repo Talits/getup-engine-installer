@@ -1,0 +1,18 @@
+#!/bin/bash
+
+files=(
+    $STATE_DIR/getupengine.env
+    $STATE_DIR/images/images.env
+    $STATE_DIR/provider.env
+)
+
+for file in ${files[@]} $@; do
+    if [ -e "$file" ]; then
+        echo Sourcing $file
+        set -a
+        source $file
+        set +a
+    fi
+done
+
+source setup-state-backend

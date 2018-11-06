@@ -5,8 +5,8 @@ if [ $# -lt 1 ]; then
     exit
 fi
 
-cd /getup-engine/ansible
+cd /getup-engine/installer/openshift
 
 host_pattern=$1
 shift
-exec ansible $host_pattern -i /state/hosts-$TARGET_OPENSHIFT_VERSION -m shell -a "$*"
+exec ansible $host_pattern -i /state/hosts-$TARGET_VERSION -m shell -a "$*"

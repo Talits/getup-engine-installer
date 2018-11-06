@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -eu
+
+if [ -x /getup-engine/installer/$FLAVOR/deploy ]; then
+    exec /getup-engine/installer/$FLAVOR/deploy $@
+
+elif [ which deploy-$flavor 2>/dev/null ]; then
+    exec deploy-$flavor $@
+fi

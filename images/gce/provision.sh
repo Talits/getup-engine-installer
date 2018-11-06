@@ -17,14 +17,15 @@ sed -i 's/Defaults\s\+requiretty/Defaults !requiretty/g' /etc/sudoers
 
 ## Install base packages
 yum update -y
-yum install -y NetworkManager nc docker
+yum install -y NetworkManager nc docker git
 
 systemctl stop docker-storage-setup docker
 # docker will be enabled during boot from setup-host.sh script
 systemctl disable docker-storage-setup docker
 
 easy_install pip
-pip install -U pip
+pip install --upgrade pip==9.0.3 --force-reinstall
+pip install --upgrade openshift --force-reinstall --ignore-installed ipaddress
 
 ## Setup network interfaces
 for ifcfg_eth in /etc/sysconfig/network-scripts/ifcfg-eth*; do
@@ -39,4 +40,5 @@ done
 systemctl enable NetworkManager
 #systemctl start NetworkManager
 
+echo $RELEASE > /root/.release
 touch /root/.provisioned

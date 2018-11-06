@@ -1,0 +1,24 @@
+---
+- name: Copy kube config
+  tags:
+  - post-install
+  block:
+  - set_fact:
+      user_kubeconfig_dir: /home/{{ ansible_user }}/.kube
+      user_kubeconfig: /home/{{ ansible_user }}/.kube/config
+
+  - file:
+      state: directory
+      path: "{{ user_kubeconfig_dir }}"
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+
+  - name: Copy .kube/config to default user
+    shell: cp -f /root/.kube/config {{ user_kubeconfig }}
+
+  - name: Ensure read-only mode for kubeconfig
+    file:
+      mode: 0644
+      owner: root
+      group: root
+      path: "{{ user_kubeconfig }}"

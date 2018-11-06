@@ -17,10 +17,11 @@ sed -i 's/Defaults\s\+requiretty/Defaults !requiretty/g' /etc/sudoers
 
 ## Install base packages
 yum update -y
-yum install -y NetworkManager nc
+yum install -y NetworkManager nc git
 
 easy_install pip
-pip install -U pip
+pip install --upgrade pip==9.0.3 --force-reinstall
+pip install --upgrade openshift --force-reinstall --ignore-installed ipaddress
 
 systemctl enable NetworkManager
 systemctl start NetworkManager
@@ -72,4 +73,5 @@ systemctl enable docker
 #systemctl start docker-storage-setup
 #systemctl start docker
 
+echo $RELEASE > /root/.release
 touch /root/.provisioned

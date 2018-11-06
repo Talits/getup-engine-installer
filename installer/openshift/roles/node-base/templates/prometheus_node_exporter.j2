@@ -1,0 +1,64 @@
+apiVersion: extensions/v1beta1
+kind: DaemonSet
+metadata:
+  labels:
+    component: node-exporter
+  name: node-exporter
+spec:
+  selector:
+    matchLabels:
+      component: node-exporter
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        component: node-exporter
+      name: node-exporter
+    spec:
+      containers:
+      - image: quay.io/prometheus/node-exporter:latest
+        imagePullPolicy: IfNotPresent
+        name: node-exporter
+        args:
+          - --collector.procfs
+          - /host/proc
+          - --collector.sysfs
+          - /host/sys
+          - --collector.filesystem.ignored-mount-points
+          - "^/(sys|proc|dev|host|etc)($|/)"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 256Mi
+          limits:
+            cpu: 100m
+            memory: 512Mi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - mountPath: /host/proc
+          name: proc
+          readOnly: true
+        - mountPath: /host/sys
+          name: sys
+          readOnly: true
+      volumes:
+      - hostPath:
+          path: /proc
+        name: proc
+      - hostPath:
+          path: /sys
+        name: sys
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      restartPolicy: Always
+      securityContext: {}
+      serviceAccount: prometheus-node-exporter
+      serviceAccountName: prometheus-node-exporter
+      terminationGracePeriodSeconds: 30
+  templateGeneration: 1
+  updateStrategy:
+    rollingUpdate:
+      maxUnavailable: 1
+    type: RollingUpdate
