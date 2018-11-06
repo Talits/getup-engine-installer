@@ -34,3 +34,18 @@
     name: certificate-checker
     files:
       - "{{ template_path }}"
+
+- name: External Certs |  Add template
+  template:
+    src: external-certificate-cron.yaml.j2
+    dest: external-certificate-cron.yaml
+    
+- name: External Certs | Create Cronjob External Alert
+  oc_obj:
+    state: present
+    namespace: "{{ getupcloud_namespace }}"
+    kind: CronJob
+    name: certificate-external-checker
+    files:
+      - "external-certificate-cron.yaml"
+  
