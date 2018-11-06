@@ -109,7 +109,7 @@ gen_hosts()
     fi
 
     target_hosts=${1:-$HOSTS_FILE}
-    hosts_in=/getup-engine/ansible/hosts-${TARGET_RELEASE}.in
+    hosts_in=/getup-engine/installer/${FLAVOR}/hosts-${TARGET_RELEASE}.in
     hosts_extra_in=/state/hosts-${TARGET_RELEASE}.extra.in
 
     source gen-hosts $hosts_in $hosts_extra_in > ${target_hosts}.tmp

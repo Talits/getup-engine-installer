@@ -75,6 +75,7 @@ RUN cd / && \
         [ -e "${i}" ] && patch -p0 < "$i"; \
     done
 
+ADD templates/ /getup-engine/templates
 ADD bin/ /getup-engine/bin/
 
 ARG RELEASE
