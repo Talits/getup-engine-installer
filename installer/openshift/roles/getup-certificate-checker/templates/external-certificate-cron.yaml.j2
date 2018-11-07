@@ -20,7 +20,7 @@ spec:
             imagePullPolicy: Always
             env:
             - name: ENDPOINT
-              value: api.{{ openshift_master_default_subdomain }}
+              value: {{ kubernetes_api_endpoint }}
             - name: WEBHOOK_URL
               value: ""
             - name: CHANNEL
