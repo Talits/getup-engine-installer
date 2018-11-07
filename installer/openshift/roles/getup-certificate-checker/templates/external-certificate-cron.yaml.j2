@@ -1,0 +1,28 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: certificate-external-checker
+  labels:
+    app: certificate-external-checker
+spec:
+  schedule: "00 14 * * 1"
+  jobTemplate:
+    metadata:
+      labels:
+        app: certificate-external-checker
+    spec:
+      template:
+        spec:
+          containers:
+          - name: certificate-external-checker
+            image: getupcloud/check-external-certificate:latest
+            imagePullPolicy: Always
+            env:
+            - name: ENDPOINT
+              value: {{ kubernetes_api_endpoint }}
+            - name: WEBHOOK_URL
+              value: ""
+            - name: CHANNEL
+              value: ""            
+          restartPolicy: Never
