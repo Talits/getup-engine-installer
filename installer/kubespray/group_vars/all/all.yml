@@ -81,6 +81,7 @@ cloud_provider: "${PROVIDER}"
 ## Set Pypi repo and cert accordingly
 #pyrepo_index: https://pypi.example.com/simple
 #pyrepo_cert: /etc/ssl/certs/ca-certificates.crt
+kube_feature_gates: ['VolumeScheduling=true']
 
 ## Extra vars
 cluster_zone: ${CLUSTER_ZONE}
