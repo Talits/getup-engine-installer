@@ -36,7 +36,7 @@ getupcloud_api_default_from_email: ""
 getupcloud_api_contact_email: ""
 getupcloud_api_billing_email: ""
 getupcloud_api_database_engine: "sqlite"
-getupcloud_api_database_name:  "getup"
+getupcloud_api_database_name:  "database.sqlite3"
 getupcloud_api_database_service_name: "mysql-api"
 getupcloud_api_time_zone: 'UTC'
 getupcloud_api_use_i18n: True
