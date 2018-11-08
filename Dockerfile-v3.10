@@ -24,7 +24,7 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
         openssl gettext unzip sudo bind-utils && \
     yum clean all && \
     pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir awscli pyaml && \
+    pip install --no-cache-dir awscli pyaml pyopenssl && \
     pip3.6 install --no-cache-dir --upgrade pip && \
     pip3.6 install --no-cache-dir awscli pyaml boto3 && \
     mkdir -p /getup-engine/bin && \
