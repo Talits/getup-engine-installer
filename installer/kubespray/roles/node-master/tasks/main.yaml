@@ -19,6 +19,15 @@
   - name: Ensure read-only mode for kubeconfig
     file:
       mode: 0644
+      owner: "{{ ansible_user }}"
+      group: "{{ ansible_user }}"
+      path: "{{ user_kubeconfig }}"
+    when: not protected_kubeconfig
+
+  - name: Ensure read-only mode for kubeconfig
+    file:
+      mode: 0644
       owner: root
       group: root
       path: "{{ user_kubeconfig }}"
+    when: protected_kubeconfig

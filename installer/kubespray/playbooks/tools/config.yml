@@ -1,0 +1,26 @@
+---
+- name: Setup
+  hosts: localhost
+  connection: local
+  become: no
+  gather_facts: no
+  tags:
+    - always
+  roles:
+    - init
+
+- name: Install kubectx/kubens
+  hosts: oo_first_master
+  tags:
+    - tools
+  tasks:
+    - git:
+        repo: https://github.com/ahmetb/kubectx
+        dest: /opt/kubectx
+    - file:
+        state: link
+        src: "/opt/kubectx/{{ item }}"
+        dest: "/usr/local/bin/{{ item }}"
+      with_items:
+        - kubectx
+        - kubens

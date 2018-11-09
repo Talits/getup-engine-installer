@@ -8,22 +8,8 @@
     - always
   roles:
     - init
-    
-- name: Copy tools
-  hosts: oo_first_master
-  tags:
-    - tools
-  tasks:
-    - name: Copy cluster-metrics
-      copy:
-        src: ../../../bin/cluster-metrics
-        dest: /usr/local/bin/cluster-metrics
-        mode: 0755
-    - name: Copy sh profiles
-      copy:
-        src: ../../../bin/on.sh
-        dest: /etc/profile.d/on.sh
-        mode: 0644
+
+- import_playbook: ../tools/config.yml
 
 - import_playbook: ../monitoring/config.yml
 
