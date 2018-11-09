@@ -6,6 +6,7 @@ set -eu
 
 INCLUDES=(
     certs/
+    kubespray/
     letsencrypt/
     overwrite/
     console-urls.json.enc
