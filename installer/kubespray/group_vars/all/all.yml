@@ -86,6 +86,8 @@ kube_feature_gates: ['VolumeScheduling=true']
 ## Extra vars
 cluster_zone: ${CLUSTER_ZONE}
 
+protected_kubeconfig: false
+
 storageclass_name: "aws-ebs-gp2"
 storageclass_provisioner: "kubernetes.io/aws-ebs"
 storageclass_reclaimpolicy: "Delete"
