@@ -93,3 +93,7 @@ storageclass_parameters:
   encrypted: "false"
   type: gp2
   zones: ${AWS_AVAILABILITY_ZONES}
+
+pager_duty_service_key: "${GETUPCLOUD_PAGER_DUTY_SERVICE_KEY}"
+slack_operations_webhook: "${GETUPCLOUD_SLACK_OPERATIONS_WEBHOOK}"
+slack_operations_channel: "${GETUPCLOUD_SLACK_OPERATIONS_CHANNEL}"

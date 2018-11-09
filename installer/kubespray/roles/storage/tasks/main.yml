@@ -7,4 +7,3 @@
   k8s:
     state: present
     src: "storageclass.yml"
-   
