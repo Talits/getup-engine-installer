@@ -14,8 +14,8 @@ esac
 export ROOT_DIR="$(dirname $0)"
 
 stage=install
-default_stages="install scale"
-STAGES="pre install post getup gen-vars playbook scale"
+core_stages="install scale getup"
+stages="$core_stages pre-install post-install gen-vars playbook scale"
 
 function stage_is()
 {
@@ -33,7 +33,7 @@ while [ $# -gt 0 ]; do
             shift
         ;;
         -h|--help)
-            echo "$0 [stage=${STAGES// / | }] [ansible-args...]"
+            echo "$0 [stage=${stages// / | }] [ansible-args...]"
             exit
         ;;
         *)
@@ -42,7 +42,7 @@ while [ $# -gt 0 ]; do
     esac
 done
 
-if ! stage_is $default_stage $STAGES; then
+if ! stage_is $stages; then
     echo Invalid stage: $stage
     exit 1
 fi
@@ -117,14 +117,14 @@ if stage_is playbook; then
     exec ansible-playbook -i $HOSTS_FILE -b ${ansible_args[@]}
 fi
 
-if stage_is $default_stages pre; then
-    source /getup-engine/installer/kubespray/stages/pre -i $HOSTS_FILE ${ansible_args[@]}
+if stage_is install pre-install; then
+    source /getup-engine/installer/kubespray/stages/pre-install -i $HOSTS_FILE ${ansible_args[@]}
 fi
 
-if stage_is $default_stages; then
+if stage_is $stages; then
     source /getup-engine/installer/kubespray/stages/${stage} -i $HOSTS_FILE ${ansible_args[@]}
 fi
 
-if stage_is $default_stages post; then
-    source /getup-engine/installer/kubespray/stages/post -i $HOSTS_FILE ${ansible_args[@]}
+if stage_is install post-install; then
+    source /getup-engine/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
 fi
