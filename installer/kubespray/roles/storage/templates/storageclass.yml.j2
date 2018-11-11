@@ -4,5 +4,6 @@ metadata:
   name: "{{ storageclass_name }}"
 provisioner: "{{ storageclass_provisioner }}"
 reclaimPolicy: "{{ storageclass_reclaimpolicy }}"
+volumeBindingMode: WaitForFirstConsumer
 parameters:
   {{ storageclass_parameters | to_nice_yaml(indent=2) }}

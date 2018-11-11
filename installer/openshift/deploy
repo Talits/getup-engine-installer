@@ -59,9 +59,15 @@ set -e
 [ -d $STATE_DIR ] || mkdir -p $STATE_DIR
 
 # Loading defaults
-for file in ${ROOT_DIR}/roles/defaults/*; do
-    config2env $file
-done > /tmp/ansible-defaults.env
+defaults=(
+    $(find ${ROOT_DIR}/playbooks -type d -name defaults -print)
+    $(find ${ROOT_DIR}/roles -type d -name defaults -print)
+)
+if [ ${#defaults[*]} -gt 0 ]; then
+    for dir in ${defaults[*]}; do
+       { cat $dir/* | config2env; } 2>/dev/null 
+    done
+fi > /tmp/ansible-defaults.env
 
 source source-env /tmp/ansible-defaults.env
 

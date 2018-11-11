@@ -437,7 +437,7 @@ resource "aws_elb" "api_external" {
         healthy_threshold   = 2
         unhealthy_threshold = 2
         interval            = 5
-        target              = "TCP:443"
+        target              = "HTTPS:443/healthz"
         timeout             = 2
     }
 
@@ -478,7 +478,7 @@ resource "aws_elb" "api_internal" {
         healthy_threshold   = 2
         unhealthy_threshold = 2
         interval            = 5
-        target              = "TCP:443"
+        target              = "HTTPS:443/healthz"
         timeout             = 2
     }
 

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+cd /getup-engine/installer/kubespray/
+ansible-playbook $@ \
+    --become --become-user=root \
+    playbooks/getup/config.yml

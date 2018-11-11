@@ -8,10 +8,12 @@ files=(
 
 for file in ${files[@]} $@; do
     if [ -e "$file" ]; then
+	export OLD_PATH="$PATH" OLD_TERM="$TERM"
         echo Sourcing $file
         set -a
         source $file
         set +a
+	export PATH="$OLD_PATH" TERM="$OLD_TERM"
     fi
 done
 

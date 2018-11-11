@@ -152,9 +152,9 @@ rd APP_COUNT $((ZONES_COUNT * 2))
 
 if provider_is aws; then
     rd AWS_INSTANCE_BASTION ${AWS_INSTANCE_BASTIONL:-t2.small}
-    rd AWS_INSTANCE_MASTER ${AWS_INSTANCE_MASTER:-m4.large}
-    rd AWS_INSTANCE_INFRA ${AWS_INSTANCE_INFRA:-m4.xlarge}
-    rd AWS_INSTANCE_APP ${AWS_INSTANCE_APP:-m4.xlarge}
+    rd AWS_INSTANCE_MASTER ${AWS_INSTANCE_MASTER:-t2.medium}
+    rd AWS_INSTANCE_INFRA ${AWS_INSTANCE_INFRA:-t2.medium}
+    rd AWS_INSTANCE_APP ${AWS_INSTANCE_APP:-t2.medium}
     ex HIGH_PERF_DISK_TYPE="io1"
     ex OPENSHIFT_STORAGECLASS_NAME="gp2"
     ex OPENSHIFT_MONITORING_STORAGE_TYPE="pvc"
@@ -191,7 +191,7 @@ elif provider_is gce; then
     ex GETUPCLOUD_BACKUP_GCE_ZONE=${ZONES_LIST[0]}
 fi
 
-if ask "Use high performance disks ($HIGH_PERF_DISK_TYPE) where applicable?" ${USE_HIGH_PERF_DISKS:-true}; then
+if ask "Use high performance disks ($HIGH_PERF_DISK_TYPE) where applicable?" ${USE_HIGH_PERF_DISKS:-false}; then
     ex USE_HIGH_PERF_DISKS=true
 else
     ex USE_HIGH_PERF_DISKS=false
