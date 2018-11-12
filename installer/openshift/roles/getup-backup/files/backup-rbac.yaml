@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: getup-backup
+rules:
+- apiGroups:
+  - ""
+  attributeRestrictions: null
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - list
+  - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: getup-backup
+roleRef:
+  kind: ClusterRole
+  name: getup-backup
+subjects:
+  - kind: ServiceAccount
+    name: getup-backup
+    namespace: getup
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: getup-backup
