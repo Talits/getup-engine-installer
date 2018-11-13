@@ -14,6 +14,15 @@
 
 # crontab is created by provider specific tasks below
 
+- name: Create RBAC for volume-backup
+  block:
+  - copy:
+      src: files/backup-rbac.yaml
+      dest: backup-rbac.yaml
+  - command: {{ oc }} apply -f backup-rbac.yaml
+  when:
+    - openshift_cloudprovider_kind is defined
+
 - import_tasks: aws.yml
   when:
     - openshift_cloudprovider_kind is defined and openshift_cloudprovider_kind == "aws"
