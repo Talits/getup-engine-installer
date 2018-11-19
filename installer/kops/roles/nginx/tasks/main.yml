@@ -6,4 +6,4 @@
     state: present
 
 - name: Install nginx controller
-  shell: "{{ bin_dir }}/helm upgrade --install nginx-ingress --namespace {{ nginx_namespace }} stable/ngnix-ingress"
+  shell: "{{ bin_dir }}/helm upgrade --install nginx-ingress --namespace {{ nginx_namespace }} stable/nginx-ingress"
