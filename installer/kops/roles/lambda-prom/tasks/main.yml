@@ -17,9 +17,9 @@
     - name: prometheus-alert
       zip_file: prom-rules.zip
       env_vars:
-        URLS: "https://prometheus.{{ cluster_zone }}"
-        PAGER_KEY: "{{ pagerdutykey }}"
-        SLACK_URL: "{{ webhook }}"
+        URLS: "https://prometheus.{{ getupcloud_apps_zone }}"
+        PAGER_KEY: "{{ getupcloud_pager_duty_service_key }}"
+        SLACK_URL: "{{ getupcloud_slack_operations_webhook }}"
 
 - name: Cloudwatch | Include Role Lambda
   cloudwatchevent_rule:

@@ -9,7 +9,7 @@
   roles:
     - init
 
-- name: Open ports
+- name: Install lambda prom
   hosts: oo_first_master
   gather_facts: no
   tags:
