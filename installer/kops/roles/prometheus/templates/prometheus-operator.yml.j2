@@ -64,18 +64,17 @@ alertmanager:
 
       - match:
           alertname: DeadMansSwitch
-          
+          continue: false          
 
 {% if slack_operations_webhook is defined and slack_operations_webhook %}
       - match_re:
           cluster: .*
         receiver: slack_operations
-        continue: false
+        continue: true
 {% endif %}
     
 {% if pager_duty_service_key is defined and pager_duty_service_key %}
       - match_re:
-          alertname: .*
           cluster: .*
         receiver: pager_duty
         continue: true
