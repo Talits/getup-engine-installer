@@ -1,0 +1,25 @@
+#!/bin/bash
+
+set -eu
+
+name=$1
+
+if [ "${name:0:1}" == '/' ]; then
+    echo $name
+    exit 0
+fi
+
+for dir in /getup-engine/installer/{$FLAVOR/playbooks,kubespray/kubespray} /openshift-ansible/playbooks; do
+    for prefix in config main; do
+        basename=$dir/${name}/$prefix
+        if [ -e ${basename}.yaml ]; then
+            echo $(realpath ${basename}.yaml)
+            exit 0
+        elif [ -e ${basename}.yml ]; then
+            echo $(realpath ${basename}.yml)
+            exit 0
+        fi
+    done
+done
+
+exit 1
