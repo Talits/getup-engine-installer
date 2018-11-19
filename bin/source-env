@@ -3,6 +3,7 @@
 files=(
     $STATE_DIR/getupengine.env
     $STATE_DIR/images/images.env
+    $STATE_DIR/terraform-out.env
     $STATE_DIR/provider.env
 )
 

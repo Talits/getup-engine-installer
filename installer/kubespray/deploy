@@ -114,7 +114,11 @@ cd $ROOT_DIR
 process-template $ROOT_DIR/group_vars /state/kubespray/group_vars
 
 if stage_is playbook; then
-    exec ansible-playbook -i $HOSTS_FILE -b ${ansible_args[@]}
+    playbook_path=$(find-playbook ${ansible_args[0]})
+    unset ansible_args[0]
+
+    echo Starting playbook: $playbook_path
+    exec ansible-playbook -i $HOSTS_FILE $playbook_path ${ansible_args[*]}
 fi
 
 if stage_is install pre-install; then

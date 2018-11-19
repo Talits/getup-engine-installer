@@ -13,63 +13,18 @@
       - "rbac.yaml"
     delete_after: yes
 
-- name: EventRouter | Create Service Account
-  oc_serviceaccount:
-    name: eventrouter-exporter
-    namespace: "{{ openshift_prometheus_namespace }}"
-    state: present
-
 - name: Assign role to Service Account
   oc_adm_policy_user:
     state: present
     user: "system:serviceaccount:{{ openshift_prometheus_namespace }}:eventrouter-exporter"
     namespace: "{{ openshift_prometheus_namespace  }}"
     resource_kind: cluster-role
-    resource_name: cluster-admin
+    resource_name: eventrouter-exporter
 
-- name: CM | Add template
-  template:
-    src: config.json.j2
-    dest: "config.json"
-    
-- name: EventRouter | Create ConfigMap
-  oc_configmap:
-    state: present
-    name: eventrouter-exporter-config
-    namespace: "{{ openshift_prometheus_namespace }}"
-    from_file: 
-      config.json: config.json
-      
-- name: EventRouter | Add template
+- name: EventRouter | Copy objects
   template:
     src: eventrouter.yml.j2
-    dest: "eventrouter.yaml"
+    dest: "eventrouter.yml"
   
-- name: Create DeploymentConfig
-  oc_obj:
-    name: eventrouter-exporter
-    state: present
-    namespace: "{{ openshift_prometheus_namespace }}"
-    kind: DeploymentConfig
-    files:
-      - eventrouter.yaml
-    delete_after: yes
-  ignore_errors: yes
- 
-- name: EventRouter | Create Service
-  oc_service:
-    name: eventrouter-exporter
-    namespace: "{{ openshift_prometheus_namespace }}"
-    labels:
-      name: eventrouter-exporter
-    annotations:
-      prometheus.io/scrape: 'true'
-    ports:
-    - name: eventrouter-exporter
-      port: 8080
-      targetPort: 8080
-      protocol: TCP
-    selector:
-      app: eventrouter-exporter
-    session_affinity: None
-    service_type: ClusterIP
+- name: Create EventRouter objects
+  shell: "kubectl apply -f eventrouter.yml -n {{ openshift_prometheus_namespace }}"

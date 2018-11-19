@@ -37,6 +37,13 @@
   command: |
     {{ oc }} delete --ignore-not-found cronjobs/volume-backup -n "{{ getupcloud_namespace }}"
 
+- name: Create RBAC for volume-backup
+  block:
+  - copy:
+      src: files/backup-rbac.yaml
+      dest: backup-rbac.yaml
+  - command: "{{ oc }} apply -f backup-rbac.yaml"
+
 - name: Create volume-backup cronjob
   command: |
     {{ oc }} run volume-backup

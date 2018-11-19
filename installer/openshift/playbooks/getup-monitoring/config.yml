@@ -14,6 +14,7 @@
   gather_facts: no
   tags:
     - getup-monitoring
+    - prometheus
   tasks:
     - include_role:
         name: getup-prometheus
@@ -25,6 +26,7 @@
   gather_facts: no
   tags:
     - getup-monitoring
+    - eventrouter
   tasks:
     - include_role:
         name: getup-eventrouter
@@ -34,15 +36,17 @@
   gather_facts: no
   tags:
     - getup-monitoring
+    - kubestate
   tasks:
     - include_role:
         name: getup-kubestate
 
-- name: Prometheus/Grafana Integration
+- name: Alertmanager Zabbix Webhook
   hosts: oo_first_master
   gather_facts: no
   tags:
-    - getup-zabbix
+    - getup-monitoring
+    - zabbix
   tasks:
     - include_role:
         name: getup-zabbix
@@ -52,7 +56,8 @@
   hosts: oo_first_master
   gather_facts: no
   tags:
-    - getup-zabbix
+    - getup-monitoring
+    - zabbix
   tasks:
     - include_role:
         name: getup-zabbix-agent

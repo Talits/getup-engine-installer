@@ -23,7 +23,7 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
         google-cloud-sdk azure-cli which patch git \
         openssl gettext unzip sudo bind-utils && \
     yum clean all && \
-    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --upgrade pip setuptools && \
     pip install --no-cache-dir awscli pyaml pyopenssl && \
     pip3.6 install --no-cache-dir --upgrade pip && \
     pip3.6 install --no-cache-dir awscli pyaml boto3 && \
@@ -54,24 +54,24 @@ RUN sed -ie \
 
 WORKDIR /getup-engine
 
-ENTRYPOINT [ "/getup-engine/bin/entrypoint" ]
+ENTRYPOINT [ "/usr/bin/ssh-agent", "/getup-engine/bin/entrypoint" ]
 
 CMD [ "/bin/bash" ]
 
 ADD images/ /getup-engine/images
-ADD terraform/ /getup-engine/terraform
+ADD provider/ /getup-engine/provider
 ADD state-backend/ /getup-engine/state-backend
 
-RUN for provider in /getup-engine/terraform/*/ /getup-engine/images/azure/; do \
+RUN for provider in /getup-engine/provider/*/ /getup-engine/images/azure/; do \
       echo "Terraform init [$provider]" && \
       cd $provider && \
       terraform init -upgrade -reconfigure -input=false || exit 1; \
     done
 
-ADD ansible /getup-engine/ansible
+ADD installer /getup-engine/installer
 
 RUN cd / && \
-    for i in /getup-engine/ansible/patches/${TARGET_RELEASE}-*.diff; do \
+    for i in /getup-engine/installer/*/patches/${TARGET_RELEASE}-*.diff; do \
         [ -e "${i}" ] && patch -p0 < "$i"; \
     done
 

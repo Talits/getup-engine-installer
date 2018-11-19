@@ -244,7 +244,7 @@ fi
 if ask 'Integrate with slack (error messages and prometheus alerts)?' ${GETUPCLOUD_OBSERVER_INSTALL:-false}; then
     ex INSTALL_OBSERVER=true
     rd GETUPCLOUD_SLACK_OPERATIONS_WEBHOOK
-    rd GETUPCLOUD_SLACK_OPERATIONS_CHANNEL "#$CLUSTER_ID-errors"
+    rd GETUPCLOUD_SLACK_OPERATIONS_CHANNEL "#$CLUSTER_ID-alerts"
     rd GETUPCLOUD_SLACK_TOKEN
 else
     ex INSTALL_OBSERVER=false

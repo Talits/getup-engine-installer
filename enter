@@ -21,4 +21,4 @@ if [ -z "${cluster_name}" ]; then
     exec docker ps --format "{{.Names}}" | \grep ^getup-engine- | sed -e 's/^getup-engine${IMAGE_SUFFIX}-//' | sort
 fi
 
-exec sudo docker exec -u root -it getup-engine${IMAGE_SUFFIX}-$cluster_name ssh-agent entrypoint ${@:-bash}
+exec sudo docker exec -it getup-engine${IMAGE_SUFFIX}-$cluster_name ssh-agent entrypoint ${@:-bash}

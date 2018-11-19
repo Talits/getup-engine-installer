@@ -26,7 +26,7 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
         google-cloud-sdk azure-cli which patch git \
         openssl gettext unzip sudo bind-utils && \
     yum clean all && \
-    pip3.6 install --no-cache-dir --upgrade pip && \
+    pip3.6 install --no-cache-dir --upgrade pip setuptools && \
     pip3.6 install --no-cache-dir awscli pyaml boto3 'ansible<2.7' && \
     mkdir -p /getup-engine/bin
 
