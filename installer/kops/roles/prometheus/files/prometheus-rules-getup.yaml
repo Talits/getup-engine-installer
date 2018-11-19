@@ -1,0 +1,51 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  generation: 1
+  labels:
+    app: prometheus-operator
+    release: prom-oper
+  name: prometheus-operator-getup-rules
+spec:
+  groups:
+  - name: getup.rules
+    rules:
+    - alert: FailedBackup
+      expr: heptio_eventrouter_warnings_current{involved_object_kind=~".*Backup"} > 1
+      for: 1m
+      labels:
+        service: backup
+        severity: warning
+      annotations:
+        description: "Some backup job(s) of kind {{ $label.involved_object_kind }} has failed"
+        summary: "Backup has failed"
+
+    - alert: BackupNotActive
+      expr: absent(heptio_eventrouter_normal_current{involved_object_kind=~".*Backup"}) > 0
+      for: 24h
+      labels:
+        service: backup
+        severity: warning
+      annotations:
+        description: Looks like backup jobs aren't running at all.
+        summary: Backup not active
+
+    - alert: FailedGetupJobs
+      expr: sum(irate(heptio_eventrouter_warnings_total{involved_object_namespace="getup", involved_object_kind="Job", reason="BackoffLimitExceeded"}[1h])) > 0
+      for: 1h
+      labels:
+        service: jobs
+        severity: warning
+      annotations:
+        description: Some getup jobs are failing to execute
+        summary: Failed jobs.
+
+    - alert: CertificateAlert
+      expr: sum(irate(heptio_eventrouter_warnings_total{involved_object_kind="CertificateChecker",involved_object_namespace="getup"}[1h])) > 0
+      for: 5m
+      labels:
+        service: jobs
+        severity: warning
+      annotations:
+        description: "{{ cluster_name }} - One or more certificates are about to expire. Please see logs from related CronJob."
+        summary: "{{ cluster_name }} - Certificates will expire."

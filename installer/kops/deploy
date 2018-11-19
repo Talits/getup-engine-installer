@@ -1,0 +1,130 @@
+#!/bin/bash
+
+export REGION=$AWS_DEFAULT_REGION
+
+cd /getup-engine/installer/kubespray/
+
+case $TARGET_RELEASE in
+    v1.12) ;;
+    *)
+        echo Unsupported Kubernetes version: $TARGET_RELEASE
+        exit 1
+esac
+
+export ROOT_DIR="$(dirname $0)"
+
+stage=install
+core_stages="install scale getup"
+stages="$core_stages pre-install post-install gen-vars playbook scale"
+
+function stage_is()
+{
+    for _stage; do
+        [ "${stage}" == "${_stage}" ] && return
+    done
+    return 1
+}
+
+ansible_args=()
+while [ $# -gt 0 ]; do
+    case "$1" in
+        stage=*)
+            stage=${1#*=}
+            shift
+        ;;
+        -h|--help)
+            echo "$0 [stage=${stages// / | }] [ansible-args...]"
+            exit
+        ;;
+        *)
+            ansible_args[${#ansible_args[*]}]="$1"
+            shift
+    esac
+done
+
+if ! stage_is $stages; then
+    echo Invalid stage: $stage
+    exit 1
+fi
+
+trap save-state EXIT
+echo "Running stage: $stage"
+echo "Ansible args: ${ansible_args[*]}"
+
+setup-ssh
+
+set -e
+
+[ -d $STATE_DIR ] || mkdir -p $STATE_DIR
+
+# Loading defaults
+defaults=(
+    $(find ${ROOT_DIR}/playbooks -type d -name defaults -print)
+    $(find ${ROOT_DIR}/roles -type d -name defaults -print)
+)
+if [ ${#defaults[*]} -gt 0 ]; then
+    for dir in ${defaults[*]}; do
+       { cat $dir/* | config2env; } 2>/dev/null || true
+    done
+fi > /tmp/ansible-defaults.env
+
+source source-env /tmp/ansible-defaults.env
+
+# Setup openshift-ansible
+
+export ANSIBLE_REMOTE_USER=${DEFAULT_USER:-centos}
+export MASTER_NODES_TOTAL=$(echo $MASTER_HOSTNAMES | wc -w)
+export INFRA_NODES_TOTAL=$(echo $INFRA_HOSTNAMES | wc -w)
+export APP_NODES_TOTAL=$(echo $NODE_HOSTNAMES | wc -w)
+
+if [ -z "${CONTAINERIZED}" ];then
+    export CONTAINERIZED=${CONTAINERIZED:-false}
+    echo "CONTAINERIZED=${CONTAINERIZED}" >> $STATE_DIR/getupengine.env
+fi
+
+if [ -z "${OPENSHIFT_MASTER_SESSION_AUTH_SECRET}" ]; then
+    export OPENSHIFT_MASTER_SESSION_AUTH_SECRET="$(openssl rand -base64 24)"
+    echo "OPENSHIFT_MASTER_SESSION_AUTH_SECRET='${OPENSHIFT_MASTER_SESSION_AUTH_SECRET}'" >> $STATE_DIR/getupengine.env
+fi
+
+if [ -z "${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET}" ]; then
+    export OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET="$(openssl rand -base64 24)"
+    echo "OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET='${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET}'" >> $STATE_DIR/getupengine.env
+fi
+
+# Azure needs fqdn
+INTERNAL_DOMAIN_SUFFIX=''
+if [ "${PROVIDER}" == "azure" ]; then
+    # is there a better (terraform) way to do this?
+    INTERNAL_DOMAIN_SUFFIX=".$(az network nic list --query "[?name == 'master-1'].dnsSettings.internalDomainNameSuffix" -o tsv)"
+fi
+export INTERNAL_DOMAIN_SUFFIX
+
+if [ -e $STATE_DIR/kubespray/hosts.yaml ]; then
+    HOSTS_FILE=$STATE_DIR/kubespray/hosts.yaml
+else
+    HOSTS_FILE=/getup-engine/installer/kubespray/kubespray-aws-inventory.py
+fi
+
+export HOSTS_FILE
+
+# Start install
+cd $ROOT_DIR
+
+process-template $ROOT_DIR/group_vars /state/kubespray/group_vars
+
+if stage_is playbook; then
+    exec ansible-playbook -i $HOSTS_FILE -b ${ansible_args[@]}
+fi
+
+if stage_is install pre-install; then
+    source /getup-engine/installer/kubespray/stages/pre-install -i $HOSTS_FILE ${ansible_args[@]}
+fi
+
+if stage_is $stages; then
+    source /getup-engine/installer/kubespray/stages/${stage} -i $HOSTS_FILE ${ansible_args[@]}
+fi
+
+if stage_is install post-install; then
+    source /getup-engine/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
+fi
