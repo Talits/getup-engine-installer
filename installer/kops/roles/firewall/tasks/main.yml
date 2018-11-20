@@ -1,0 +1,21 @@
+- name: Ensure boto and boto3 modules are installed
+  pip:
+    name: "{{ item }}"
+  become: true
+  with_items:
+    - boto3
+    - botocore
+
+- name: AWS | Update SG
+  ec2_group:
+    name: "{{ securitygroup_name }}"
+    description: sg with k8s rules
+    state: present
+    region: "{{ getupcloud_cluster_region }}"
+    vpc_id: "{{ vpc_id }}"
+    rules:
+    - proto: tcp
+      group_id: "{{ target_securitygroup }}"
+      ports:
+      - 4001
+  register: sg

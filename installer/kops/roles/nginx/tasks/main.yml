@@ -1,0 +1,9 @@
+- name: Create nginx namespace
+  k8s:
+    name: "{{ nginx_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Install nginx controller
+  shell: "{{ bin_dir }}/helm upgrade --install nginx-ingress --namespace {{ nginx_namespace }} stable/nginx-ingress"
