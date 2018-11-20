@@ -1,0 +1,32 @@
+- name: Lambda | Copy zip file
+  copy:
+    src: prom-rules.zip
+    dest: prom-rules.zip
+
+- name: Lambda | Create Rule Alert Prometheus
+  lambda:
+    name: '{{ item.name }}'
+    state: present
+    zip_file: '{{ item.zip_file }}'
+    region: "{{ getupcloud_cluster_region }}"
+    runtime: 'nodejs8.10'
+    role: 'arn:aws:iam::{{aws_account_id}}:role/lambda_basic_execution'
+    handler: 'index.handler'
+    environment_variables: '{{ item.env_vars }}'
+  with_items:
+    - name: prometheus-alert
+      zip_file: prom-rules.zip
+      env_vars:
+        URLS: "https://prometheus.{{ getupcloud_apps_zone }}"
+        PAGER_KEY: "{{ getupcloud_pager_duty_service_key }}"
+        SLACK_URL: "{{ getupcloud_slack_operations_webhook }}"
+
+- name: Cloudwatch | Include Role Lambda
+  cloudwatchevent_rule:
+    name: PrometheusRule
+    schedule_expression: "cron(0/5 * * * ? *)"
+    description: Run my scheduled task
+    targets:
+      - id: MyTargetId
+        arn: arn:aws:lambda:{{ getupcloud_cluster_region }}:{{aws_account_id}}:function:prometheus-alert
+
