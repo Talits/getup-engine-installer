@@ -1,0 +1,21 @@
+- name: Autoscaler | Set Path
+  become: true
+  shell: "mkdir -p $GOPATH/src/k8s.restdev.com"
+
+- name: Autoscaler | Get repo
+  git:
+    repo: 'https://github.com/k8s-restdev/scheduled-scaler.git'
+    dest:  $GOPATH/src/k8s.restdev.com/operators
+
+- name: Autoscaler | Install Repo
+  shell: "{{ bin_dir }}/helm install artifacts/kubes/scaling/chart --name scheduled-scaler"
+
+- name: Autoscaler | Copy Template 
+  template:
+    src: scheduler-autoscaler.yaml.j2
+    dest: scheduler-autoscaler.yaml
+
+- name: Autoscaler | Create Cronjob
+  k8s:
+    state: present
+    src: scheduler-autoscaler.yaml

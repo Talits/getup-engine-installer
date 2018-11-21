@@ -1,0 +1,15 @@
+apiVersion: "scaling.k8s.restdev.com/v1alpha1"
+kind: ScheduledScaler
+metadata:
+  name: scaler-cronjob
+spec:
+  timeZone: America/Sao_Paulo
+  target:
+    kind: HorizontalPodAutoscaler
+    name: {{ hpa_name }}
+    apiVersion: autoscaling/v1
+  steps:
+  - runat: '0 00 12 * * *'
+    mode: range
+    minReplicas: {{ min_replicas }}
+    maxReplicas: {{ max_replicas }}
