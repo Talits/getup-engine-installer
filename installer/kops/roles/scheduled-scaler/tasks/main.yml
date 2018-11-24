@@ -1,0 +1,20 @@
+---
+- name: sync charts
+  git:
+    clone: true
+    update: true
+    repo: https://github.com/k8s-restdev/scheduled-scaler.git
+    dest: "{{ scheduled_scaler_repo_dir }}"
+
+- name: Install scheduled-scaler chart
+  shell: |-
+    "{{ bin_dir }}/helm" upgrade --debug --install scheduled-scaler --namespace {{ scheduled_scaler_namespace }}
+    {{ scheduled_scaler_repo_dir }}/artifacts/kubes/scaling/chart/
+    --set-file {{ scheduled_scaler_repo_dir }}/artifacts/kubes/scaling/chart/{values.yaml,values-prod.yaml}
+
+- template:
+    src: templates/scheduled-scalers.yaml
+   dest: scheduled-scalers.yaml
+
+- name: Created scheduled-scaler CR(s)
+  shell: "{{ bin_dir }}/kubectl apply -n {{ scheduled_scaler_namespace }} -f scheduled-scalers.yaml"

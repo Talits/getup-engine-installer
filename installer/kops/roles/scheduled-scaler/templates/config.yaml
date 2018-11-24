@@ -1,0 +1,23 @@
+---
+apiVersion: scaling.k8s.restdev.com/v1alpha1
+kind: ScheduledScaler
+metadata:
+  name: {{ scheduled_scaler_name }}
+spec:
+  timeZone: {{ scheduled_scaler_timezone }}
+  target:
+    apiVersion: autoscaling/v1
+    kind: HorizontalPodAutoscaler
+    name: {{ scheduled_scaler_hpa_target_name }}
+  steps:
+{{- if defined(scheduled_scaler_steps) }}
+{{ scheduled_scaler_steps | indent(4) }}
+{{- else }}
+  - runat: 0 0 8 * * MON-FRI
+    minReplicas: 10
+    mode: range
+
+  - runat: 0 0 22 * * MON-FRI
+    minReplicas: 2
+    mode: range
+{{- end }}
