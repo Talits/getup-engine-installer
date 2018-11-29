@@ -7,7 +7,7 @@ files=(
     $STATE_DIR/provider.env
 )
 
-for file in ${files[@]} $@; do
+for file in $@ ${files[@]}; do
     if [ -e "$file" ]; then
 	export OLD_PATH="$PATH" OLD_TERM="$TERM"
         echo Sourcing $file

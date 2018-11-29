@@ -252,6 +252,10 @@ resource "aws_instance" "bastion" {
         delete_on_termination = true
     }
 
+    lifecycle {
+        ignore_changes = [ "ami", "tags", "volume_tags" ]
+    }
+
     tags {
         ResourceGroup = "${var.aws_resource_group}"
         Name          = "${var.prefix}bastion"
@@ -283,7 +287,7 @@ resource "aws_instance" "masters" {
     disable_api_termination     = "${var.aws_disable_api_termination}"
 
     lifecycle {
-        ignore_changes = [ "ebs_block_device", "tags", "volume_tags" ]
+        ignore_changes = [ "ami", "ebs_block_device", "tags", "volume_tags" ]
     }
 
     tags = {
@@ -330,7 +334,7 @@ resource "aws_instance" "infras" {
     disable_api_termination     = "${var.aws_disable_api_termination}"
 
     lifecycle {
-        ignore_changes = [ "ebs_block_device", "tags", "volume_tags" ]
+        ignore_changes = [ "ami", "ebs_block_device", "tags", "volume_tags" ]
     }
 
     tags = {
@@ -384,7 +388,7 @@ resource "aws_instance" "apps" {
     disable_api_termination     = "${var.aws_disable_api_termination}"
 
     lifecycle {
-        ignore_changes = [ "ebs_block_device", "tags", "volume_tags" ]
+        ignore_changes = [ "ami", "ebs_block_device", "tags", "volume_tags" ]
     }
 
     tags = {

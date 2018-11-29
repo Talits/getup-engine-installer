@@ -1,7 +1,6 @@
 #!/bin/bash
 
 if [ -e "${STATE_DIR}/provider.env" ]; then
-    echo Sourcing $STATE_DIR/provider.env
     . $STATE_DIR/provider.env
     export master1=${MASTER_HOSTNAMES%% *}
 else
@@ -15,7 +14,7 @@ fi
 export SSH_CONFIG_FILE=~/.ssh/config
 echo Generating $SSH_CONFIG_FILE
 
-ssh_config_in=/getup-engine/templates/ssh_config.in
+ssh_config_in=$GETUPENGINE_ROOT/templates/ssh_config.in
 envsubst < ${ssh_config_in} > ${STATE_DIR}/config
 
 install --mode=0600 $STATE_DIR/config ${SSH_CONFIG_FILE}

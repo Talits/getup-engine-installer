@@ -8,6 +8,7 @@ ENV PACKER_VERSION=1.2.5 \
     FLAVOR=kubespray \
     TARGET_RELEASE=v1.12 \
     TARGET_VERSION=1.12.2 \
+    GETUPENGINE_ROOT=/getup-engine \
     PATH=/getup-engine/bin/:$PATH \
     PACKER_BIN=/getup-engine/bin/packer \
     TERRAFORM_BIN=/getup-engine/bin/terraform \

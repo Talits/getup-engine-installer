@@ -7,6 +7,7 @@ ENV PACKER_VERSION=1.2.5 \
     FLAVOR=openshift \
     TARGET_RELEASE=v3.10 \
     TARGET_VERSION=3.10.0 \
+    GETUPENGINE_ROOT=/getup-engine \
     PATH=/getup-engine/bin/:$PATH \
     PACKER_BIN=/getup-engine/bin/packer \
     TERRAFORM_BIN=/getup-engine/bin/terraform \

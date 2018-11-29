@@ -19,7 +19,7 @@
   - copy:
       src: files/backup-rbac.yaml
       dest: backup-rbac.yaml
-  - command: {{ oc }} apply -f backup-rbac.yaml
+  - command: "{{ oc }} apply -f backup-rbac.yaml"
   when:
     - openshift_cloudprovider_kind is defined
 

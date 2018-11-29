@@ -15,6 +15,7 @@ aws_instance_bastion = "${AWS_INSTANCE_BASTION}"
 aws_instance_master  = "${AWS_INSTANCE_MASTER}"
 aws_instance_infra   = "${AWS_INSTANCE_INFRA}"
 aws_instance_app     = "${AWS_INSTANCE_APP}"
+aws_resource_tags    = "${AWS_INSTANCE_TAGS}"
 
 aws_resource_group = "${AWS_RESOURCE_GROUP}"
 aws_region         = "${AWS_DEFAULT_REGION}"

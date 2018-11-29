@@ -40,15 +40,14 @@ done
 ## TODO: up to this point we soulhd have an AMI to minimize provisioning time
 
 ## Create emptyDir partition
-VOLUMES_DEV=${VOLUMES_DEV:-/dev/xvdb}
+VOLUMES_BLOCK_NAME=$(lsblk --output TYPE,NAME|grep ^disk|cut -f 2 -d' '|sed -n '2p')
+VOLUMES_DEV=${VOLUMES_DEV:-/dev/${VOLUMES_BLOCK_NAME:-xvdb}}
 VOLUMES_DIR=${VOLUMES_DIR:-/var/lib/origin/openshift.local.volumes}
 
-if [ ! -d ${VOLUMES_DIR} ]; then
-    mkdir -p ${VOLUMES_DIR}
-    mkfs.xfs ${VOLUMES_DEV}
-    grep ${VOLUMES_DEV} /etc/fstab || echo ${VOLUMES_DEV} ${VOLUMES_DIR} xfs defaults,grpquota 0 0 >> /etc/fstab
-    #mount ${VOLUMES_DEV} || mount ${VOLUMES_DIR}
-fi
+mkdir -p ${VOLUMES_DIR}
+mkfs.xfs ${VOLUMES_DEV}
+grep ${VOLUMES_DEV} /etc/fstab || echo ${VOLUMES_DEV} ${VOLUMES_DIR} xfs defaults,grpquota 0 0 >> /etc/fstab
+mount ${VOLUMES_DEV}
 
 yum install -y docker
 systemctl stop docker-storage-setup
@@ -59,7 +58,8 @@ sleep 1
 rm -rf /var/lib/docker/
 mkdir -p /var/lib/docker/
 
-LVM_DEV=${LVM_DEV:-/dev/xvdc}
+LVM_BLOCK_NAME=$(lsblk --output TYPE,NAME|grep ^disk|cut -f 2 -d' '|sed -n '3p')
+LVM_DEV=${LVM_DEV:-/dev/${LVM_BLOCK_NAME:-xvdc}}
 cat > /etc/sysconfig/docker-storage-setup <<EOF
 DEVS='${LVM_DEV}'
 VG=docker

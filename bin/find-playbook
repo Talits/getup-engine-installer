@@ -9,7 +9,7 @@ if [ "${name:0:1}" == '/' ]; then
     exit 0
 fi
 
-for dir in /getup-engine/installer/{$FLAVOR/playbooks,kubespray/kubespray} /openshift-ansible/playbooks; do
+for dir in $GETUPENGINE_ROOT/installer/{$FLAVOR/playbooks,kubespray/kubespray} /openshift-ansible/playbooks; do
     for prefix in config main; do
         basename=$dir/${name}/$prefix
         if [ -e ${basename}.yaml ]; then

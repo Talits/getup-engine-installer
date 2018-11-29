@@ -2,8 +2,8 @@
 
 set -eu
 
-if [ -x /getup-engine/installer/$FLAVOR/deploy ]; then
-    exec /getup-engine/installer/$FLAVOR/deploy $@
+if [ -x $GETUPENGINE_ROOT/installer/$FLAVOR/deploy ]; then
+    exec $GETUPENGINE_ROOT/installer/$FLAVOR/deploy $@
 
 elif [ which deploy-$flavor 2>/dev/null ]; then
     exec deploy-$flavor $@

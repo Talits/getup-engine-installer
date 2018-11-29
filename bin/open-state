@@ -2,6 +2,18 @@
 
 state=${1:-$STATE_DIR}
 
+if [ -d "$state" ]; then
+    if ! ls -1 $state/*.enc &>/dev/null; then
+        echo $0: nothing to decrypt
+        exit
+    fi
+elif [ -e "$state" ]; then
+    :
+else
+    echo "Dont known what to do...."
+    exit 1
+fi
+
 if [ -z "$STATE_KEY" ]; then
     read -sp "Decryption Key: " STATE_KEY
     echo

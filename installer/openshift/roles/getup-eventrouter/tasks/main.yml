@@ -27,4 +27,4 @@
     dest: "eventrouter.yml"
   
 - name: Create EventRouter objects
-  shell: "kubectl apply -f eventrouter.yml -n {{ openshift_prometheus_namespace }}"
+  shell: "{{ oc }} apply -f eventrouter.yml -n {{ openshift_prometheus_namespace }}"

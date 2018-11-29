@@ -196,7 +196,7 @@ function server_name()
     local privateName=$1
 
     if [ $PROVIDER == aws ]; then
-        /getup-engine/bin/get-instance-tag $privateName Name < /$STATE_DIR/terraform.tfstate || echo ${privateName%%.*}
+        $GETUPENGINE_ROOT/bin/get-instance-tag $privateName Name < /$STATE_DIR/terraform.tfstate || echo ${privateName%%.*}
     else
         echo ${privateName%%.*}
     fi

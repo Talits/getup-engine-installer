@@ -8,20 +8,25 @@ fi
 
 if [ -z "$STATE_KEY" ]; then
     while true; do
-        read -sp "Encryption Key: " STATE_KEY
-        echo
-        read -sp "Encryption Key (again): " STATE_KEY_RETYPE
+        read -sp "Encryption Key (empty to ignore): " STATE_KEY
         echo
 
+        if [ -z "$STATE_KEY" ]; then
+          exit
+        fi
+
+        read -sp "Encryption Key (again): " STATE_KEY_RETYPE
+        echo
+    
         if [ "${STATE_KEY}" == "${STATE_KEY_RETYPE}" ]; then
             break
         fi
-
+    
         echo Password mismatch. Try again...
     done
-
-    export STATE_KEY=$(/usr/bin/printf "%32.32s" $STATE_KEY | tr -t ' ' '.')
 fi
+
+export STATE_KEY=$(/usr/bin/printf "%32.32s" $STATE_KEY | tr -t ' ' '.')
 
 echo -n Closing state dir $state_dir >&2
 
