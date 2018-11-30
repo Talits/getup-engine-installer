@@ -670,8 +670,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: '{{ $label.cluster }} - Cluster Memory Usage is high'
-      summary: '{{ $label.cluster }} - Memory Usage > 85%'
+      description: '{{ $labels.cluster }} - Cluster Memory Usage is high'
+      summary: '{{ $labels.cluster }} - Memory Usage > 85%'
 {% endraw %}
   - alert: ClusterCPUUsage
     expr: cluster:cpu_allocation:percent > 85
@@ -680,8 +680,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: '{{ $label.cluster }} - Cluster CPU Usage is high'
-      summary: '{{ $label.cluster }} - CPU Usage > 85%'
+      description: '{{ $labels.cluster }} - Cluster CPU Usage is high'
+      summary: '{{ $labels.cluster }} - CPU Usage > 85%'
 {% endraw %}
   - alert: ClusterMemoryUsage
     expr: cluster:memory_used:percent < 50
@@ -690,8 +690,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: 'Cluster - {{ $label.cluster }} Memory Usage is low'
-      summary: 'Cluster - {{ $label.cluster }} Memory Usage < 50%'
+      description: 'Cluster - {{ $labels.cluster }} Memory Usage is low'
+      summary: 'Cluster - {{ $labels.cluster }} Memory Usage < 50%'
 {% endraw %}  
   - alert: ClusterCPUUsage
     expr: cluster:cpu_allocation:percent < 50
@@ -701,7 +701,7 @@ groups:
     annotations:
 {% raw %}
       description: 'Cluster - {{ $labelcluster }} - CPU Usage is low'
-      summary: 'Cluster - {{ $label.cluster }} - CPU Usage < 50%'
+      summary: 'Cluster - {{ $labels.cluster }} - CPU Usage < 50%'
 {% endraw %}
   - alert: TooManySystemOOM
     expr: irate(heptio_eventrouter_warnings_total{involved_object_kind="Node",reason="SystemOOM"}[10m])
@@ -727,7 +727,7 @@ groups:
       severity: warning
     annotations:
 {% raw %}
-      description: 'Disk {{$label.device}} on {{$label.instance}} will be full in 7 days'
+      description: 'Disk {{$labels.device}} on {{$labels.instance}} will be full in 7 days'
       summary: High disk usage
 {% endraw %}
 
@@ -753,7 +753,7 @@ groups:
       severity: warning
     annotations:
 {% raw %}
-      description: Some backup job(s) of kind {{$label.involved_object_kind}} has failed
+      description: Some backup job(s) of kind {{$labels.involved_object_kind}} has failed
       summary: Backup has failed
 {% endraw %}
 
@@ -785,6 +785,6 @@ groups:
       severity: warning
     annotations:
 {% raw %}
-      description: '{{ $label.cluster }} - One or more certificates are about to expire. Please see logs from related CronJob.'
-      summary: '{{ $label.cluster }} - Certificates will expire.'
+      description: '{{ $labels.cluster }} - One or more certificates are about to expire. Please see logs from related CronJob.'
+      summary: '{{ $labels.cluster }} - Certificates will expire.'
 {% endraw %}
