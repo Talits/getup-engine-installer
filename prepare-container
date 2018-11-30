@@ -1,0 +1,38 @@
+#!/bin/bash
+
+{ set -a; source $state_dir/.engine || source .engine || true; set +a; } 2>/dev/null
+
+if [ $# -lt 1 ]; then
+    cluster_name=$CLUSTER_ID
+else
+    cluster_name=$1
+    shift
+fi
+
+if [ -z "$cluster_name" ]; then    
+    echo "Usage: $0 cluster-name [version] [docker-run-options...]"
+    exit 0
+fi
+
+if [ -d "${cluster_name}" ]; then
+    state_dir=$(realpath ${cluster_name})
+else
+    state_dir=$(realpath ./state/${cluster_name})
+fi
+
+if ! [ -d "$state_dir" ]; then
+    echo Invalid state dir: $state_dir
+    exit 1
+fi
+
+if [ -v state_dir -a -e ${state_dir}/.suffix ]; then
+    IMAGE_SUFFIX=$(<$state_dir/.suffix)
+elif [ -e .suffix ]; then
+    IMAGE_SUFFIX=$(<.suffix)
+elif ! [ -v IMAGE_SUFFIX ]; then
+   IMAGE_SUFFIX=""
+fi
+
+export container_name=getup-engine${IMAGE_SUFFIX}-${state_dir##*/}
+
+source prepare-image

@@ -1,0 +1,13 @@
+---
+- name: sync charts
+  git:
+    clone: true
+    update: true
+    repo: https://github.com/getupcloud/charts
+    dest: "{{ getupcloud_charts_dir }}"
+
+- name: Install rsyslog chart
+  shell: "{{ bin_dir }}/helm upgrade --debug --install syslog --namespace {{ logging_namespace }} {{ getupcloud_charts_dir }}/rsyslog --set volume.storageClassName={{ storageclass_name }}"
+
+- name: Install fluent-bit chart
+  shell: "{{ bin_dir }}/helm upgrade --debug --install fluent-bit --namespace {{ logging_namespace }} {{ getupcloud_charts_dir }}/fluent-bit-out-syslog"

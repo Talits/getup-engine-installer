@@ -1,0 +1,4 @@
+---
+logging_namespace: logging
+getupcloud_charts_dir: /tmp/getupcloud-charts
+
