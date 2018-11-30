@@ -700,7 +700,7 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: 'Cluster - {{ $labelcluster }} - CPU Usage is low'
+      description: 'Cluster - {{ $labels.cluster }} - CPU Usage is low'
       summary: 'Cluster - {{ $labels.cluster }} - CPU Usage < 50%'
 {% endraw %}
   - alert: TooManySystemOOM
