@@ -1,0 +1,103 @@
+#!/bin/bash
+
+aws_instances_status()
+{
+    local ALL_INSTANCES=($MASTER_HOSTNAMES $INFRA_HOSTNAMES $APP_HOSTNAMES)
+
+    if [ "${#ALL_INSTANCES[*]}" -eq 0 ]; then
+        echo Instances not found
+        return 1
+    fi
+
+    local IFS=,
+    aws ec2 describe-instances \
+        --filters Name=private-dns-name,Values="${ALL_INSTANCES[*]}" \
+        --filters Name=tag:ResourceGroup,Values=$CLUSTER_ID \
+        --query 'Reservations[].Instances[].State.Name' \
+        --output json
+}
+
+aws_instances()
+{
+    local ALL_INSTANCES=($MASTER_HOSTNAMES $INFRA_HOSTNAMES $APP_HOSTNAMES)
+
+    if [ "${#ALL_INSTANCES[*]}" -eq 0 ]; then
+        echo Instances not found
+        return 1
+    fi
+
+    local IFS=,
+    aws ec2 describe-instances \
+        --filters Name=state,Values=stopped \
+        --filters Name=private-dns-name,Values="${ALL_INSTANCES[*]}" \
+        --filters Name=tag:ResourceGroup,Values=$CLUSTER_ID \
+        --query 'Reservations[].Instances[].InstanceId' \
+        --output text
+}
+
+cluster_create-images()
+{
+    $GETUPENGINE_ROOT/images/deploy $@
+}
+
+cluster_create()
+{
+    $GETUPENGINE_ROOT/provider/deploy $@
+}
+
+cluster_install()
+{
+    $GETUPENGINE_ROOT/installer/deploy $@
+}
+
+cluster_destroy()
+{
+    $GETUPENGINE_ROOT/provider/deploy --destroy $@
+}
+
+cluster_info()
+{
+    echo "==> $STATE_DIR/getupengine.env"
+    sort $STATE_DIR/getupengine.env
+    echo
+    echo "==> $STATE_DIR/provider.env"
+    sort $STATE_DIR/provider.env 2>/dev/null || true
+}
+
+cluster_on()
+{
+    if [ "$PROVIDER" == aws ]; then
+        INSTANCE_IDS=( $(aws_instances stopped) )
+
+        if [ ${#INSTANCE_IDS[*]} -gt 0 ]; then
+            aws ec2 start-instances --instance-ids ${INSTANCE_IDS[*]}
+        fi
+    fi
+}
+
+cluster_off()
+{
+    if [ "$PROVIDER" == aws ]; then
+        INSTANCE_IDS=( $(aws_instances running) )
+        if [ ${#INSTANCE_IDS[*]} -gt 0 ]; then
+            aws ec2 stop-instances --instance-ids ${INSTANCE_IDS[*]}
+        fi
+    fi
+
+}
+
+cluster_help()
+{
+    echo "$0 [create|destroy|info|on|off]"
+    exit 0
+}
+
+cluster_()
+{
+    cluster_help
+}
+
+source source-env
+
+cmd=$1; shift
+eval cluster_$cmd "$@"

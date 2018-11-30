@@ -1,0 +1,30 @@
+#!/bin/bash
+
+{ set -a; source $state_dir/.engine || source .engine || true; set +a; } 2>/dev/null
+
+if [ ! -v INSTALLER_RELEASE ] && [ -d .git ]; then
+    INSTALLER_RELEASE=$(git log --pretty=format:"%h" -n 1)
+else
+    INSTALLER_RELEASE=devel
+fi
+
+if [ -z "$INSTALLER_VERSION" ]; then
+   if [ -e "$state_dir/installer_version" ]; then
+       INSTALLER_VERSION=$(<$state_dir/installer_version)
+   else
+       INSTALLER_VERSION=$1
+       shift
+   fi
+fi
+
+if [ -z "$INSTALLER_VERSION" ]; then
+    echo Missing installer version
+    exit 1
+fi
+
+if [ -n "$IMAGE_SUFFIX" -a "${IMAGE_SUFFIX:0:1}" != '-' ]; then
+    IMAGE_SUFFIX=-$IMAGE_SUFFIX
+fi
+
+export image_name=getup-engine${IMAGE_SUFFIX}:${INSTALLER_VERSION}
+export dockerfile=Dockerfile-${INSTALLER_VERSION}
