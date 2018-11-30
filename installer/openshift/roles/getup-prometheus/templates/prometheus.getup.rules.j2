@@ -670,8 +670,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: {{ cluster }} - Cluster Memory Usage is high
-      summary: {{ cluster }} - Memory Usage > 85%
+      description: '{{ $label.cluster }} - Cluster Memory Usage is high'
+      summary: '{{ $label.cluster }} - Memory Usage > 85%'
 {% endraw %}
   - alert: ClusterCPUUsage
     expr: cluster:cpu_allocation:percent > 85
@@ -680,8 +680,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: {{ cluster }} - Cluster CPU Usage is high
-      summary: {{ cluster }} - CPU Usage > 85%
+      description: '{{ $label.cluster }} - Cluster CPU Usage is high'
+      summary: '{{ $label.cluster }} - CPU Usage > 85%'
 {% endraw %}
   - alert: ClusterMemoryUsage
     expr: cluster:memory_used:percent < 50
@@ -690,8 +690,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: Cluster - {{ cluster }} Memory Usage is low
-      summary: Cluster - {{ cluster }} Memory Usage < 50%
+      description: 'Cluster - {{ $label.cluster }} Memory Usage is low'
+      summary: 'Cluster - {{ $label.cluster }} Memory Usage < 50%'
 {% endraw %}  
   - alert: ClusterCPUUsage
     expr: cluster:cpu_allocation:percent < 50
@@ -700,8 +700,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: Cluster - {{ cluster }} - CPU Usage is low
-      summary: Cluster - {{ cluster}} - CPU Usage < 50%
+      description: 'Cluster - {{ $labelcluster }} - CPU Usage is low'
+      summary: 'Cluster - {{ $label.cluster }} - CPU Usage < 50%'
 {% endraw %}
   - alert: TooManySystemOOM
     expr: irate(heptio_eventrouter_warnings_total{involved_object_kind="Node",reason="SystemOOM"}[10m])
@@ -784,5 +784,7 @@ groups:
       service: jobs
       severity: warning
     annotations:
-      description: {{ cluster }} - One or more certificates are about to expire. Please see logs from related CronJob.
-      summary: {{ cluster }} - Certificates will expire.
+{% raw %}
+      description: '{{ $label.cluster }} - One or more certificates are about to expire. Please see logs from related CronJob.'
+      summary: '{{ $label.cluster }} - Certificates will expire.'
+{% endraw %}
