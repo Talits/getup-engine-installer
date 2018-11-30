@@ -23,7 +23,7 @@ function stage_is()
 
 function run_stage()
 {
-    source /getup-engine/installer/openshift/stages/${stage}.sh $@
+    source $GETUPENGINE_ROOT/installer/openshift/stages/${stage}.sh $@
 }
 
 ansible_args=()
@@ -115,7 +115,7 @@ gen_hosts()
     fi
 
     target_hosts=${1:-$HOSTS_FILE}
-    hosts_in=/getup-engine/installer/${FLAVOR}/hosts-${TARGET_RELEASE}.in
+    hosts_in=$GETUPENGINE_ROOT/installer/${FLAVOR}/hosts-${TARGET_RELEASE}.in
     hosts_extra_in=/state/hosts-${TARGET_RELEASE}.extra.in
 
     source gen-hosts $hosts_in $hosts_extra_in > ${target_hosts}.tmp
@@ -129,26 +129,8 @@ cd $ROOT_DIR
 gen_hosts
 
 if stage_is playbook; then
-    # first arg is the path to playbook or playbook name from /getup-engine/ansible/playbooks/ or /openshift-ansible/playbooks/
-    playbook_name=${ansible_args[0]}
+    playbook_path=$(find-playbook ${ansible_args[0]})
     unset ansible_args[0]
-
-    if [ "${playbook_name:0:1}" != '/' ]; then
-        playbook_path=$(realpath $OLDPWD/${playbook_name})
-
-        for playbook_dirs in $OLDPWD/ansible/playbooks /openshift-ansible/playbooks; do
-            playbook_basename=$playbook_dirs/${playbook_name}/config
-            if [ -e $playbook_basename.yaml ]; then
-                playbook_path=$(realpath $playbook_basename.yaml)
-                break
-            elif [ -e $playbook_basename.yml ]; then
-                playbook_path=$(realpath $playbook_basename.yml)
-                break
-            fi
-        done
-    else
-        playbook_path=${playbook_name}
-    fi
 
     echo Starting playbook: $playbook_path
     exec ansible-playbook -i $HOSTS_FILE $playbook_path ${ansible_args[*]}
@@ -216,7 +198,7 @@ if stage_is upgrade-control-plane || stage_is upgrade-nodes; then
     echo Finished upgrade
     exit
 #elif stage_is upgrade-infra; then
-#    source /getup-engine/ansible/scripts/infra-rollout
+#    source $GETUPENGINE_ROOT/ansible/scripts/infra-rollout
 #    exit
 fi
 

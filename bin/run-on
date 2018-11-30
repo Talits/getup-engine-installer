@@ -5,7 +5,7 @@ if [ $# -lt 1 ]; then
     exit
 fi
 
-cd /getup-engine/installer/openshift
+cd $GETUPENGINE_ROOT/installer/openshift
 
 host_pattern=$1
 shift

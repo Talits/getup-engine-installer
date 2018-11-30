@@ -2,7 +2,7 @@
 
 export REGION=$AWS_DEFAULT_REGION
 
-cd /getup-engine/installer/kubespray/
+cd $GETUPENGINE_ROOT/installer/kubespray/
 
 case $TARGET_RELEASE in
     v1.12) ;;
@@ -77,21 +77,6 @@ export MASTER_NODES_TOTAL=$(echo $MASTER_HOSTNAMES | wc -w)
 export INFRA_NODES_TOTAL=$(echo $INFRA_HOSTNAMES | wc -w)
 export APP_NODES_TOTAL=$(echo $NODE_HOSTNAMES | wc -w)
 
-if [ -z "${CONTAINERIZED}" ];then
-    export CONTAINERIZED=${CONTAINERIZED:-false}
-    echo "CONTAINERIZED=${CONTAINERIZED}" >> $STATE_DIR/getupengine.env
-fi
-
-if [ -z "${OPENSHIFT_MASTER_SESSION_AUTH_SECRET}" ]; then
-    export OPENSHIFT_MASTER_SESSION_AUTH_SECRET="$(openssl rand -base64 24)"
-    echo "OPENSHIFT_MASTER_SESSION_AUTH_SECRET='${OPENSHIFT_MASTER_SESSION_AUTH_SECRET}'" >> $STATE_DIR/getupengine.env
-fi
-
-if [ -z "${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET}" ]; then
-    export OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET="$(openssl rand -base64 24)"
-    echo "OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET='${OPENSHIFT_MASTER_SESSION_ENCRYPTION_SECRET}'" >> $STATE_DIR/getupengine.env
-fi
-
 # Azure needs fqdn
 INTERNAL_DOMAIN_SUFFIX=''
 if [ "${PROVIDER}" == "azure" ]; then
@@ -103,7 +88,7 @@ export INTERNAL_DOMAIN_SUFFIX
 if [ -e $STATE_DIR/kubespray/hosts.yaml ]; then
     HOSTS_FILE=$STATE_DIR/kubespray/hosts.yaml
 else
-    HOSTS_FILE=/getup-engine/installer/kubespray/kubespray-aws-inventory.py
+    HOSTS_FILE=$GETUPENGINE_ROOT/installer/kubespray/kubespray-aws-inventory.py
 fi
 
 export HOSTS_FILE
@@ -114,17 +99,21 @@ cd $ROOT_DIR
 process-template $ROOT_DIR/group_vars /state/kubespray/group_vars
 
 if stage_is playbook; then
-    exec ansible-playbook -i $HOSTS_FILE -b ${ansible_args[@]}
+    playbook_path=$(find-playbook ${ansible_args[0]})
+    unset ansible_args[0]
+
+    echo Starting playbook: $playbook_path
+    exec ansible-playbook -i $HOSTS_FILE $playbook_path ${ansible_args[*]}
 fi
 
 if stage_is install pre-install; then
-    source /getup-engine/installer/kubespray/stages/pre-install -i $HOSTS_FILE ${ansible_args[@]}
+    source $GETUPENGINE_ROOT/installer/kubespray/stages/pre-install -i $HOSTS_FILE ${ansible_args[@]}
 fi
 
 if stage_is $stages; then
-    source /getup-engine/installer/kubespray/stages/${stage} -i $HOSTS_FILE ${ansible_args[@]}
+    source $GETUPENGINE_ROOT/installer/kubespray/stages/${stage} -i $HOSTS_FILE ${ansible_args[@]}
 fi
 
 if stage_is install post-install; then
-    source /getup-engine/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
+    source $GETUPENGINE_ROOT/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
 fi

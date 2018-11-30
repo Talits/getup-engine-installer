@@ -1,39 +1,58 @@
 #!/bin/bash
 
 state_dir=${1:-$STATE_DIR}
+file=""
 
-if ! [ -d ${state_dir} ]; then
+if [ -f "$state_dir" ]; then
+    file="$state_dir"
+elif ! [ -d ${state_dir} ]; then
     echo Unable to open state dir: $state_dir
 fi
 
 if [ -z "$STATE_KEY" ]; then
     while true; do
-        read -sp "Encryption Key: " STATE_KEY
-        echo
-        read -sp "Encryption Key (again): " STATE_KEY_RETYPE
+        read -sp "Encryption Key (empty to ignore): " STATE_KEY
         echo
 
+        if [ -z "$STATE_KEY" ]; then
+          exit
+        fi
+
+        read -sp "Encryption Key (again): " STATE_KEY_RETYPE
+        echo
+    
         if [ "${STATE_KEY}" == "${STATE_KEY_RETYPE}" ]; then
             break
         fi
-
+    
         echo Password mismatch. Try again...
     done
-
-    export STATE_KEY=$(/usr/bin/printf "%32.32s" $STATE_KEY | tr -t ' ' '.')
 fi
 
-echo -n Closing state dir $state_dir >&2
+export STATE_KEY=$(/usr/bin/printf "%32.32s" $STATE_KEY | tr -t ' ' '.')
 
-find $state_dir -path $state_dir/.terraform -prune -o -type f -not -name '*.enc' -print  | while read file; do
-    #echo " --> $file $file.enc"
-    echo -n . >&2
+_close()
+{
+    local file="$1"
     openssl aes-256-cbc -base64 -in "${file}" -out "${file}.enc" -pass env:STATE_KEY 2>/dev/null
-    ret=$?
-    if [ $ret -eq 0 ]; then
-        [ -e "$file" -a -e "${file}.enc" ] || continue
-        [ "$file" -ot "${file}.enc" ] || continue
-        [ ${0##*/} == update-state ] || rm -f "${file}"
-    fi
-done
-echo >&2
+}
+
+if [ -n "$file" ]; then
+    echo "Encrypting $file to $file.enc" >&2
+   _close "$file"
+else
+    echo -n Closing state dir $state_dir >&2
+    
+    find $state_dir -path $state_dir/.terraform -prune -o -type f -not -name '*.enc' -print  | while read file; do
+        #echo " --> $file $file.enc"
+        echo -n . >&2
+        openssl aes-256-cbc -base64 -in "${file}" -out "${file}.enc" -pass env:STATE_KEY 2>/dev/null
+        ret=$?
+        if [ $ret -eq 0 ]; then
+            [ -e "$file" -a -e "${file}.enc" ] || continue
+            [ "$file" -ot "${file}.enc" ] || continue
+            [ ${0##*/} == update-state ] || rm -f "${file}"
+        fi
+    done
+    echo >&2
+fi

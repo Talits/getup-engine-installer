@@ -4,11 +4,15 @@ export STATE_BACKEND="s3://getup-cluster-state-$(md5sum <<<getup| awk '{print $1
 export TERRAFORM_STATE_FILE="${STATE_DIR}/terraform.tfstate"
 
 if [ "${STATE_BACKEND%%://*}" == s3 ]; then
+    (( ${#STATE_BACKEND_AWS_ACCESS_KEY_ID} * \
+       ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY} * \
+       ${#AWS_DEFAULT_REGION} == 0 )) && unset STATE_BACKEND || true
+
     function aws_state_backend()
     {
         (( ${#STATE_BACKEND_AWS_ACCESS_KEY_ID} * \
            ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY} * \
-           ${#AWS_DEFAULT_REGION} > 0 )) || return
+           ${#AWS_DEFAULT_REGION} > 0 )) || return 0
 
         AWS_ACCESS_KEY_ID=${STATE_BACKEND_AWS_ACCESS_KEY_ID} \
         AWS_SECRET_ACCESS_KEY=${STATE_BACKEND_AWS_SECRET_ACCESS_KEY} \
@@ -20,7 +24,7 @@ if [ "${STATE_BACKEND%%://*}" == s3 ]; then
     {
         (( ${#STATE_BACKEND_AWS_ACCESS_KEY_ID} * \
            ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY} * \
-           ${#AWS_DEFAULT_REGION} > 0 )) || return
+           ${#AWS_DEFAULT_REGION} > 0 )) || return 0
 
         local BUCKET_NAME=${STATE_BACKEND#s3://}
         local CREATE_BUCKET_CONFIG=""
@@ -57,10 +61,4 @@ if [ "${STATE_BACKEND%%://*}" == s3 ]; then
         #    fi
         #fi
     }
-else
-    echo
-    echo 'WARNING: Invalid state backend' $STATE_BACKEND
-    echo 'WARNING: Invalid state backend' $STATE_BACKEND
-    echo 'WARNING: Invalid state backend' $STATE_BACKEND
-    echo
 fi

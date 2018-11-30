@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export RELEASE=$(</getup-engine/release)
+export RELEASE=$(<$GETUPENGINE_ROOT/release)
 echo
 echo "Welcome to Getup Engine Installer ${FLAVOR^} $TARGET_VERSION ($RELEASE)"
 echo =======================================
@@ -19,11 +19,11 @@ if [ -z "${CLUSTER_ID}" ]; then
 fi
 
 if [ -d "$STATE_DIR/overwrite" ]; then
-    rsync -Irv /state/overwrite/ /getup-engine/
+    rsync -Irv /state/overwrite/ $GETUPENGINE_ROOT/
 fi
 
-if [ ! -d "/getup-engine/provider/${PROVIDER}/" ]; then
-    echo Missing provider folder /getup-engine/provider/${PROVIDER}/
+if [ ! -d "$GETUPENGINE_ROOT/provider/${PROVIDER}/" ]; then
+    echo Missing provider folder $GETUPENGINE_ROOT/provider/${PROVIDER}/
     exit 1
 fi
 
@@ -41,7 +41,7 @@ COLOR_RESET=$(tput sgr0)
 
 export PS1="[\[$COLOR_GREEN\]${CLUSTER_ID} \[$COLOR_RESET\]@ \[$COLOR_RED\]$TARGET_VERSION\[$COLOR_RESET\]] \D{%x %X} \w \$ "
 
-grep -q 'source /getup-engine/bin/on.sh' ~/.bashrc 2>/dev/null || echo 'source /getup-engine/bin/on.sh' >> ~/.bashrc
+grep -q "source $GETUPENGINE_ROOT/bin/on.sh" ~/.bashrc 2>/dev/null || echo "source $GETUPENGINE_ROOT/bin/on.sh" >> ~/.bashrc
 
 mkdir -p ${CERTS_DIR:-$STATE_DIR/certs}
 

@@ -8,6 +8,7 @@ ENV PACKER_VERSION=1.2.5 \
     FLAVOR=kubespray \
     TARGET_RELEASE=v1.12 \
     TARGET_VERSION=1.12.2 \
+    GETUPENGINE_ROOT=/getup-engine \
     PATH=/getup-engine/bin/:$PATH \
     PACKER_BIN=/getup-engine/bin/packer \
     TERRAFORM_BIN=/getup-engine/bin/terraform \
@@ -26,7 +27,7 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
         google-cloud-sdk azure-cli which patch git \
         openssl gettext unzip sudo bind-utils && \
     yum clean all && \
-    pip3.6 install --no-cache-dir --upgrade pip && \
+    pip3.6 install --no-cache-dir --upgrade pip setuptools && \
     pip3.6 install --no-cache-dir awscli pyaml boto3 'ansible<2.7' && \
     mkdir -p /getup-engine/bin
 
@@ -84,7 +85,7 @@ ADD bin/ /getup-engine/bin/
 
 ARG RELEASE
 
-RUN chmod -R ug+rw,o-w /getup-engine && \
+RUN chmod -R ug+rw,o-w /getup-engine /usr/share/kubespray && \
     chmod -R +x /getup-engine/bin/ && \
     chown -R 1000 /getup-engine/* && \
     echo $RELEASE > /getup-engine/release && \

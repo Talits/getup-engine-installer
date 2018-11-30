@@ -1,0 +1,10 @@
+---
+scheduled_scaler_repo_dir: /tmp/scheduled-scaler
+scheduled_scaler_namespace: default
+#scheduled_scaler_steps:
+#  - runat: 0 0 8 * * MON-FRI
+#    minReplicas: 10
+#    mode: range
+#  - runat: 0 0 22 * * MON-FRI
+#    minReplicas: 2
+#    mode: range

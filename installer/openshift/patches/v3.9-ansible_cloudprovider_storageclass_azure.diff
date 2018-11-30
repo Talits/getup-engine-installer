@@ -1,4 +1,4 @@
-[rankmyapp @ 3.9.0] 06/06/18 18:22:44 /getup-engine $ diff -pu /openshift-ansible/playbooks/openshift-hosted/private/openshift_default_storage_class.yml /openshift-ansible/playbooks/openshift-hosted/private/openshift_default_storage_class.yml.new
+diff -pu /openshift-ansible/playbooks/openshift-hosted/private/openshift_default_storage_class.yml /openshift-ansible/playbooks/openshift-hosted/private/openshift_default_storage_class.yml.new
 --- /openshift-ansible/playbooks/openshift-hosted/private/openshift_default_storage_class.yml	2018-06-06 18:22:04.708005065 +0000
 +++ /openshift-ansible/playbooks/openshift-hosted/private/openshift_default_storage_class.yml.new	2018-06-06 18:21:54.100986148 +0000
 @@ -5,4 +5,4 @@

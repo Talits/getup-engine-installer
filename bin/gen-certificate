@@ -52,7 +52,7 @@ function issue()
         extra="--dns dns_$PROVIDER"
     fi
 
-    /getup-engine/acme.sh/acme.sh --issue $extra \
+    $GETUPENGINE_ROOT/acme.sh/acme.sh --issue $extra \
         -d "${zone}" \
         -d "*.${zone}" \
         --home $STATE_DIR/letsencrypt \
@@ -70,7 +70,7 @@ function renew()
     echo "Renewing certificates for $zone"
     echo
 
-    /getup-engine/acme.sh/acme.sh \
+    $GETUPENGINE_ROOT/acme.sh/acme.sh \
         --renew \
         --dns \
         --yes-I-know-dns-manual-mode-enough-go-ahead-please \

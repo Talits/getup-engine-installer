@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -d /state -o -d /getup-engine ]; then
+if [ -d /state -o -d $GETUPENGINE_ROOT ]; then
     echo This script is supposed to be run outside the container
     exit 1
 fi

@@ -2,7 +2,7 @@
 
 export REGION=$AWS_DEFAULT_REGION
 
-cd /getup-engine/installer/kubespray/
+cd $GETUPENGINE_ROOT/installer/kubespray/
 
 case $TARGET_RELEASE in
     v1.12) ;;
@@ -103,7 +103,7 @@ export INTERNAL_DOMAIN_SUFFIX
 if [ -e $STATE_DIR/kubespray/hosts.yaml ]; then
     HOSTS_FILE=$STATE_DIR/kubespray/hosts.yaml
 else
-    HOSTS_FILE=/getup-engine/installer/kubespray/kubespray-aws-inventory.py
+    HOSTS_FILE=$GETUPENGINE_ROOT/installer/kubespray/kubespray-aws-inventory.py
 fi
 
 export HOSTS_FILE
@@ -118,13 +118,13 @@ if stage_is playbook; then
 fi
 
 if stage_is install pre-install; then
-    source /getup-engine/installer/kubespray/stages/pre-install -i $HOSTS_FILE ${ansible_args[@]}
+    source $GETUPENGINE_ROOT/installer/kubespray/stages/pre-install -i $HOSTS_FILE ${ansible_args[@]}
 fi
 
 if stage_is $stages; then
-    source /getup-engine/installer/kubespray/stages/${stage} -i $HOSTS_FILE ${ansible_args[@]}
+    source $GETUPENGINE_ROOT/installer/kubespray/stages/${stage} -i $HOSTS_FILE ${ansible_args[@]}
 fi
 
 if stage_is install post-install; then
-    source /getup-engine/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
+    source $GETUPENGINE_ROOT/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
 fi

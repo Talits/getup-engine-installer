@@ -20,7 +20,7 @@ yum update -y
 yum install -y NetworkManager nc git
 
 easy_install pip
-pip install --upgrade pip==9.0.3 --force-reinstall
+pip install --upgrade pip setuptools --force-reinstall
 pip install --upgrade openshift --force-reinstall --ignore-installed ipaddress
 
 systemctl enable NetworkManager

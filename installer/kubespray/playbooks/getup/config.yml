@@ -11,7 +11,9 @@
 
 - import_playbook: ../tools/config.yml
 
-- import_playbook: ../monitoring/config.yml
-
 - import_playbook: ../storage/config.yml
   when: storageclass_name is defined and storageclass_name != ""
+
+- import_playbook: ../monitoring/config.yml
+
+- import_playbook: ../logging/config.yml

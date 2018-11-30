@@ -7,6 +7,7 @@ ENV PACKER_VERSION=1.2.5 \
     FLAVOR=openshift \
     TARGET_RELEASE=v3.9 \
     TARGET_VERSION=3.9.0 \
+    GETUPENGINE_ROOT=/getup-engine \
     PATH=/getup-engine/bin/:$PATH \
     PACKER_BIN=/getup-engine/bin/packer \
     TERRAFORM_BIN=/getup-engine/bin/terraform \
@@ -23,10 +24,10 @@ RUN rpm --import https://packages.microsoft.com/keys/microsoft.asc && \
         google-cloud-sdk azure-cli which patch git \
         openssl gettext unzip sudo bind-utils && \
     yum clean all && \
-    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --upgrade pip setuptools && \
     pip install --no-cache-dir awscli pyaml pyopenssl && \
     pip3.6 install --no-cache-dir --upgrade pip && \
-    pip3.6 install --no-cache-dir awscli pyaml boto3 && \
+    pip3.6 install --no-cache-dir awscli pyaml boto3 pyopenssl jinja2-cli && \
     mkdir -p /getup-engine/bin && \
     ln -s /usr/share/ansible/openshift-ansible /openshift-ansible && \
     \

@@ -3,10 +3,11 @@
 files=(
     $STATE_DIR/getupengine.env
     $STATE_DIR/images/images.env
+    $STATE_DIR/terraform-out.env
     $STATE_DIR/provider.env
 )
 
-for file in ${files[@]} $@; do
+for file in $@ ${files[@]}; do
     if [ -e "$file" ]; then
 	export OLD_PATH="$PATH" OLD_TERM="$TERM"
         echo Sourcing $file

@@ -1,51 +1,23 @@
 #!/bin/bash
 
-set -e
-
-version=v3.9
-
-if [ $# -lt 1 ]; then
-    echo "Usage: $0 cluster-name [version=$version] [docker-run-options...]"
-    exit 0
-fi
-
-cluster_name=${1}
+export INSTALLER_VERSION=$2
+#declare -r INSTALLER_VERSION
+source prepare-container
 shift
 
-if [ -d "${cluster_name}" ]; then
-    state_dir=$(realpath ${cluster_name})
-else
-    state_dir=$(realpath ./state/${cluster_name})
-fi
-
-if [ -e $state_dir/.suffix ]; then
-    export IMAGE_SUFFIX=$(<$state_dir/.suffix)
-    echo IMAGE_SUFFIX=$IMAGE_SUFFIX
-elif [ -e .suffix ]; then
-    export IMAGE_SUFFIX=$(<.suffix)
-    echo IMAGE_SUFFIX=$IMAGE_SUFFIX
-fi
-
-name=${state_dir##*/}
-container_name=getup-engine${IMAGE_SUFFIX}-${name}
-
-if [ $# -gt 0 ]; then
-    image=getup-engine${IMAGE_SUFFIX}:${1}
-    shift
-else
-    image=getup-engine${IMAGE_SUFFIX}:$version
-fi
-
-if ! [ -d "$state_dir" ]; then
-    echo Invalid state dir: $state_dir
-    exit 1
-fi
+set -eu
 
 echo
-echo "Image:     $image"
+echo "Image:     $image_name"
 echo "Container: $container_name"
 echo "State dir: $state_dir"
 echo
+
+if [ -e $state_dir/getupengine.env -a -e $state_dir/getupengine.env.enc ] && \
+   [ $state_dir/getupengine.env.enc -nt $state_dir/getupengine.env ]; then
+    echo "Fail: Potentially unsaved data: $state_dir/getupengine.env.inc is newer than $state_dir/getupengine.env"
+    exit 1
+fi
 
 # Prepend cluster search domain
 search=$(grep search /etc/resolv.conf | cut -f2- -d' ')
@@ -60,6 +32,10 @@ fi
 
 sudo chgrp -R $(id -g) ${state_dir}
 
+if ! [ -v STATE_KEY ]; then
+    STATE_KEY=""
+fi
+
 bin/open-state ${state_dir}
 
 if ! grep CLUSTER_ID -qw $state_dir/getupengine.env; then
@@ -68,7 +44,7 @@ if ! grep CLUSTER_ID -qw $state_dir/getupengine.env; then
 fi
 
 set -a
-source $state_dir/getupengine.env
+source $state_dir/getupengine.env 
 set +a
 
 state_backend_vars=(
@@ -86,18 +62,24 @@ for var in ${state_backend_vars[*]}; do
     [ "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -eq 0 ] && break
 done
 
-if [ -n "$STATE_BACKEND_AWS_ACCESS_KEY_ID" -a "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -ne 20 ]; then
-    echo Invalid STATE_BACKEND_AWS_ACCESS_KEY_ID length: ${#STATE_BACKEND_AWS_ACCESS_KEY_ID}
-    exit 1
+if [ -v STATE_BACKEND_AWS_ACCESS_KEY_ID -a -v STATE_BACKEND_AWS_SECRET_ACCESS_KEY ]; then
+    if ! [ "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -eq 0 -o "${#STATE_BACKEND_AWS_ACCESS_KEY_ID}" -eq 20 ]; then
+        echo Invalid STATE_BACKEND_AWS_ACCESS_KEY_ID length: ${#STATE_BACKEND_AWS_ACCESS_KEY_ID}
+        exit 1
+    fi
+
+    if ! [ "${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}" -eq 0 -o "${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}" -eq 40 ]; then
+        echo Invalid STATE_BACKEND_AWS_SECRET_ACCESS_KEY length: ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}
+        exit 1
+    fi
+else
+    STATE_BACKEND_AWS_ACCESS_KEY_ID=""
+    STATE_BACKEND_AWS_SECRET_ACCESS_KEY=""
+    STATE_BACKEND_AWS_DEFAULT_REGION=""
 fi
 
-if [ -n "$STATE_BACKEND_AWS_SECRET_ACCESS_KEY" -a "${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}" -ne 40 ]; then
-    echo Invalid STATE_BACKEND_AWS_SECRET_ACCESS_KEY length: ${#STATE_BACKEND_AWS_SECRET_ACCESS_KEY}
-    exit 1
-fi
-
-echo "---> Starting container ${container_name} from image $image"
-trap "$PWD/bin/close-state ${state_dir}" EXIT
+echo "---> Starting container ${container_name} from image $image_name"
+trap "STATE_KEY=$STATE_KEY $PWD/bin/close-state ${state_dir}" EXIT
 
 sudo docker run -it --rm $@ \
     -v ${state_dir}/:/state \
@@ -109,4 +91,4 @@ sudo docker run -it --rm $@ \
     --name ${container_name} \
     ${CLUSTER_ZONE:+--dns-search $CLUSTER_ZONE} \
     $(for dom in $search; do [ $CLUSTER_ZONE != $dom ] && echo --dns-search $dom; done) \
-    $image bash
+    $image_name bash

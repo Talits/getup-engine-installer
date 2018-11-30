@@ -2,7 +2,7 @@
 
 set -eu
 
-cd /getup-engine
+cd $GETUPENGINE_ROOT
 
 echo "#MARK - `date` - Creating infastructure"
 ./provider/deploy -y

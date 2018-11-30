@@ -38,7 +38,7 @@ export ID_RSA_PUB="$(<${ID_RSA_PUB_FILE})"
 
 chmod 0600 ${ID_RSA_PUB_FILE}
 
-# Dwnload getup-engine
+# Download getup-engine
 rm -rf /tmp/getup-engine
 su - centos -c "git clone git@github.com:getupcloud/getup-engine.git /tmp/getup-engine"
 cd /tmp/getup-engine
