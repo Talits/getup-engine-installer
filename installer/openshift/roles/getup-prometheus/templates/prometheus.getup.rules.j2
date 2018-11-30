@@ -670,8 +670,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: {{ cluster_name }} - Cluster Memory Usage is high
-      summary: {{ cluster_name }} - Memory Usage > 85%
+      description: {{ cluster }} - Cluster Memory Usage is high
+      summary: {{ cluster }} - Memory Usage > 85%
 {% endraw %}
   - alert: ClusterCPUUsage
     expr: cluster:cpu_allocation:percent > 85
@@ -680,8 +680,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: {{ cluster_name }} - Cluster CPU Usage is high
-      summary: {{ cluster_name }} - CPU Usage > 85%
+      description: {{ cluster }} - Cluster CPU Usage is high
+      summary: {{ cluster }} - CPU Usage > 85%
 {% endraw %}
   - alert: ClusterMemoryUsage
     expr: cluster:memory_used:percent < 50
@@ -690,8 +690,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: Cluster - {{ cluster_name }} Memory Usage is low
-      summary: Cluster - {{ cluster_name }} Memory Usage < 50%
+      description: Cluster - {{ cluster }} Memory Usage is low
+      summary: Cluster - {{ cluster }} Memory Usage < 50%
 {% endraw %}  
   - alert: ClusterCPUUsage
     expr: cluster:cpu_allocation:percent < 50
@@ -700,8 +700,8 @@ groups:
       severity: info
     annotations:
 {% raw %}
-      description: Cluster - {{ cluster_name }} - CPU Usage is low
-      summary: Cluster - {{ cluster_name }} - CPU Usage < 50%
+      description: Cluster - {{ cluster }} - CPU Usage is low
+      summary: Cluster - {{ cluster}} - CPU Usage < 50%
 {% endraw %}
   - alert: TooManySystemOOM
     expr: irate(heptio_eventrouter_warnings_total{involved_object_kind="Node",reason="SystemOOM"}[10m])
@@ -784,5 +784,5 @@ groups:
       service: jobs
       severity: warning
     annotations:
-      description: {{ cluster_name }} - One or more certificates are about to expire. Please see logs from related CronJob.
-      summary: {{ cluster_name }} - Certificates will expire.
+      description: {{ cluster }} - One or more certificates are about to expire. Please see logs from related CronJob.
+      summary: {{ cluster }} - Certificates will expire.
