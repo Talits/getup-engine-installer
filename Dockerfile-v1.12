@@ -85,7 +85,7 @@ ADD bin/ /getup-engine/bin/
 
 ARG RELEASE
 
-RUN chmod -R ug+rw,o-w /getup-engine && \
+RUN chmod -R ug+rw,o-w /getup-engine /usr/share/kubespray && \
     chmod -R +x /getup-engine/bin/ && \
     chown -R 1000 /getup-engine/* && \
     echo $RELEASE > /getup-engine/release && \
