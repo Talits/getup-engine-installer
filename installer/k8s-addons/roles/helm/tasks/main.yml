@@ -1,0 +1,15 @@
+---
+- name: HELM | Download helm
+  unarchive: 
+    src: "{{ helm_url }}"
+    dest: /tmp
+    copy: no
+  tags: helm
+
+- name: copy helm binary
+  become: true
+  copy:
+    src: /tmp/linux-amd64/helm
+    dest: "/usr/bin/helm"
+    mode: 0755
+    remote_src: yes

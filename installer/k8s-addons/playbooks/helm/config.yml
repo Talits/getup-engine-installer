@@ -1,0 +1,8 @@
+---
+- name: Install helm components
+  hosts: localhost
+  gather_facts: no
+  tags:
+    - helm
+  roles:
+    - helm

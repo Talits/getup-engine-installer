@@ -1,0 +1,7 @@
+- name: Install logging components
+  hosts: localhost
+  gather_facts: no
+  tags:
+    - logging
+  roles:
+    - logging

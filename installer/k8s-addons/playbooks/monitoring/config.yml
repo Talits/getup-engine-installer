@@ -1,0 +1,7 @@
+- name: Install monitoring components
+  hosts: localhost
+  gather_facts: no
+  tags:
+    - monitoring
+  roles:
+    - monitoring
