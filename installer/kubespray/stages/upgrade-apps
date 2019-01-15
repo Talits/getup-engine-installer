@@ -1,9 +1,0 @@
-#!/bin/bash
-
-read -p "Informe a versao que deseja para atualizar o kubernetes: " VERSION
-VERSION=${VERSION:-v1.12.1}
-
-cd $GETUPENGINE_ROOT/installer/kubespray/
-ansible-playbook $@ \
-    --become --become-user=root \
-    -e kube_version=$VERSION playbooks/upgrade-cluster/config.yml --tags=node
