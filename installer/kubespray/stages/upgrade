@@ -1,0 +1,22 @@
+#!/bin/bash
+
+TARGET_VERSION=""
+
+while [ -z "$TARGET_VERSION" ]; do
+    read -p 'Type target Kubernetes version (format $MAJOR.$minor.$patch): ' TARGET_VERSION
+
+    if ! echo "$TARGET_VERSION" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$'; then
+        TARGET_VERSION=""
+    fi
+done
+TARGET_VERSION="v$TARGET_VERSION"
+echo "-> Will try to upgrade to $TARGET_VERSION"
+sleep 2
+
+echo cd $GETUPENGINE_ROOT/installer/kubespray/
+echo ansible-playbook $@ \
+    --become --become-user=root \
+    -e kube_version=$TARGET_VERSION kubespray/upgrade-cluster.yml
+
+echo
+echo "Please remember to update you inventory/group_vars config to kube_version=$TARGET_VERSION"
