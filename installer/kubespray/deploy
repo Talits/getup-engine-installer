@@ -15,7 +15,7 @@ export ROOT_DIR="$(dirname $0)"
 
 stage=install
 core_stages="install scale getup"
-stages="$core_stages pre-install post-install gen-vars playbook scale cluster-update"
+stages="$core_stages pre-install post-install gen-vars playbook scale upgrade"
 
 function stage_is()
 {
@@ -116,12 +116,4 @@ fi
 
 if stage_is install post-install; then
     source $GETUPENGINE_ROOT/installer/kubespray/stages/post-install -i $HOSTS_FILE ${ansible_args[@]}
-fi
-
-if stage_is install upgrade-control-plane; then
-    source $GETUPENGINE_ROOT/installer/kubespray/stages/upgrade-control-plane -i $HOSTS_FILE ${ansible_args[@]}
-fi
-
-if stage_is install upgrade-apps; then
-    source $GETUPENGINE_ROOT/installer/kubespray/stages/upgrade-apps -i $HOSTS_FILE ${ansible_args[@]}
 fi
